@@ -18,7 +18,9 @@ import { useRouter } from "next/router";
 import Context from "../../Context";
 // import Images from "/frontend_asset/img/logo.png";
 
-const Header = ({ save }) => {
+const Header = ({ save, shopData }) => {
+  console.log("shopData", shopData)
+
   const cartlength = useSelector((state) => state.cart?.cartItems.length);
   const [shop_name, setShopName] = useState();
   const [cart, setCart] = useState(0);
@@ -30,17 +32,17 @@ const Header = ({ save }) => {
 
   const contextValue = useContext(Context);
   let editActive = false;
-  if (contextValue !== undefined) {
-    editActive = contextValue.value;
-    useEffect(() => {
-      if (contextValue.value1) {
-        if (logo !== undefined) {
-          save(JSON.stringify(logo));
-        }
-        // JSON.stringify(logo)
-      }
-    }, [contextValue.value1]);
-  }
+  // if (contextValue !== undefined) {
+  //   editActive = contextValue.value;
+  //   useEffect(() => {
+  //     if (contextValue.value1) {
+  //       if (logo !== undefined) {
+  //         save(JSON.stringify(logo));
+  //       }
+  //       // JSON.stringify(logo)
+  //     }
+  //   }, [contextValue.value1]);
+  // }
 
   const router = useRouter();
   const inputFile = useRef(null);
@@ -61,9 +63,9 @@ const Header = ({ save }) => {
   const onButtonClick = () => {
     inputFile.current.click();
   };
-  const handleChangeLogo = (e) => {
-    setLogo(URL.createObjectURL(e.target.files[0]));
-  };
+  // const handleChangeLogo = (e) => {
+  //   setLogo(URL.createObjectURL(e.target.files[0]));
+  // };
 
   //add to cart total item count
   const [cart1, setCart1] = useState([]);
@@ -84,13 +86,14 @@ const Header = ({ save }) => {
           {/* left  */}
           <Col>
             <div className='HeaderLeftLogo'>
-              <Link href={`/${shop_name}`}>
+              <Link href="#">
                 <img
-                  src={logo === undefined ? "/theme_1/images/logo.png" : logo}
+                  src={shopData?.shop_logo !== null || shopData?.shop_logo !== undefined ? shopData?.shop_logo?.name : "/theme_1/images/logo.png"}
+                  // src={logo === undefined ? "/theme_1/images/logo.png" : logo}
                   alt=''
                 />
               </Link>
-              {editActive === true && (
+              {/* {editActive === true && (
                 <>
                   {" "}
                   <input
@@ -116,7 +119,7 @@ const Header = ({ save }) => {
                     </svg>
                   </span>
                 </>
-              )}
+              )} */}
             </div>
           </Col>
 

@@ -167,7 +167,7 @@ const AllProduct = ({ title, fontSize }) => {
                                         className='addToCart'
                                         href='#'
                                       >
-                                        <ToastContainer />
+                                        {/* <ToastContainer pauseOnHover={false} autoClose={1000}/> */}
                                         Add To Cart
                                       </Link>
                                       <Link

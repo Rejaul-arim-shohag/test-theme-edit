@@ -22,23 +22,31 @@ import { useRouter } from 'next/router'
 const LandingOne = (props) => {
   const [product, setProduct] = useState({});
   const [shopID, setShopID] = useState();
-  async function fetchProducts(headers) {
-    const response = await fetch(
-      `${process.env.API_URL}v1/customer/products`,
-      {
-        headers: headers,
-      }
-    );
-    const data = await response.json();
 
-    setProduct(data.data[data.data?.length - 1]);
+
+  //shipping cost add
+  const [isCheckedInSideDhaka, setIsCheckedInSideDhaka] = useState(true);
+  const [isCheckedInOutSideDhaka, setIsCheckedInOutSideDhaka] = useState(false);
+  const [shippingCost, setShippingCost] = useState()
+  const handleChange = e => {
+    if (e.target.id === "insideDhaka") {
+      setIsCheckedInSideDhaka(!isCheckedInSideDhaka);
+      setIsCheckedInOutSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
+    else if (e.target.id === "outSideDhaka") {
+      setIsCheckedInOutSideDhaka(!isCheckedInOutSideDhaka)
+      setIsCheckedInSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
   }
+ 
 
   useEffect(() => {
     const headers = {
-     "shop-id": localStorage.getItem("shop_id"),
+      "shop-id": localStorage.getItem("shop_id"),
     };
-    fetchProducts(headers).then((r) => console.log());
+    // fetchProducts(headers).then((r) => console.log());
     setShopID(localStorage.getItem("shop_id"));
   }, [shopID]);
 
@@ -54,6 +62,22 @@ const LandingOne = (props) => {
 
   const router = useRouter();
   const shop_name = router.query.shopName;
+  const { page } = router.query;
+  const getPageInfo = async (page) => {
+    const pageInformation = await axios.get(
+      `${process.env.API_URL}v1/page/${page}`
+    );
+    // setPageInfo(pageInformation.data.data);
+    setProduct(pageInformation.data.data.product)
+    setShippingCost(pageInformation?.data?.data?.product?.inside_dhaka)
+  };
+  useEffect(() => {
+    if (page !== undefined) {
+      getPageInfo(page);
+    }
+
+  }, [shop_name])
+
   const onSubmit = (data) => {
     const postBody = {
       customer_name: data.customerName,
@@ -61,13 +85,15 @@ const LandingOne = (props) => {
       customer_address: data.customerAddress,
       product_id: [product.id],
       product_qty: [productQuantity],
+      shipping_cost: shippingCost,
+
     };
     axios
       .post(
         `${process.env.API_URL}v1/customer/order/store`,
         postBody,
         {
-          headers: {  "shop-id": shopID },
+          headers: { "shop-id": shopID },
         },
 
       )
@@ -98,6 +124,7 @@ const LandingOne = (props) => {
     { value: 5, label: 5 },
   ];
 
+  
   //edit
   const contextValue = useContext(Context);
   const {
@@ -121,7 +148,7 @@ const LandingOne = (props) => {
       if (contextValue.value1 === true) {
         const serialize = query.serialize();
         props.save(serialize);
-        if(logo !== undefined){
+        if (logo !== undefined) {
           props.save(JSON.stringify(logo));
         }
       }
@@ -130,22 +157,48 @@ const LandingOne = (props) => {
   const inputFile = useRef(null);
   const handleChangeLogo = (e) => {
     setLogo(URL.createObjectURL(e.target.files[0]));
+    props.setLogo(e.target.files[0]);
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('logoInf', reader.result);
+    });
   };
   const onButtonClick = () => {
     inputFile.current.click();
   };
 
-
+  const galleryImage1 = JSON.parse(props.gallery1);
+  const galleryImage2 = JSON.parse(props.gallery2);
+  const galleryImage3 = JSON.parse(props.gallery3);
+  const galleryImage4 = JSON.parse(props.gallery4);
+  const galleryImage5 = JSON.parse(props.gallery5);
+  const galleryImage6 = JSON.parse(props.gallery6);
 
   //banner change
   const [banner, setBanner] = useState();
   const bannerInputFile = useRef(null);
   const handleChangeBanner = (e) => {
     setBanner(URL.createObjectURL(e.target.files[0]));
+
+    // setGallery_1(URL.createObjectURL(e.target.files[0]));
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('gallery_1', reader.result);
+    });
   };
+
   const onEditBannerClick = () => {
     bannerInputFile.current.click();
   };
+
+  // product image change
+  
 
   //video upload
   const [productVideo, setProductVideo] = useState();
@@ -161,7 +214,7 @@ const LandingOne = (props) => {
       {/* Banner */}
       <section className='Logo'>
         <img
-          src={logo === undefined ? "/images/landing_2/logo.png" : logo}
+          src={ logo === undefined ? props.logo : logo}
           alt=''
         />
         {editActive === true && (
@@ -212,10 +265,10 @@ const LandingOne = (props) => {
                       onChange={(e) =>
                         setProp(
                           (props) =>
-                            (props.heroContent = e.target.value.replace(
-                              /<\/?[^>]+(>|$)/g,
-                              ""
-                            ))
+                          (props.heroContent = e.target.value.replace(
+                            /<\/?[^>]+(>|$)/g,
+                            ""
+                          ))
                         )
                       }
                       tagName='a'
@@ -246,10 +299,10 @@ const LandingOne = (props) => {
                       onChange={(e) =>
                         setProp(
                           (props) =>
-                            (props.currentPrice = e.target.value.replace(
-                              /<\/?[^>]+(>|$)/g,
-                              ""
-                            ))
+                          (props.currentPrice = e.target.value.replace(
+                            /<\/?[^>]+(>|$)/g,
+                            ""
+                          ))
                         )
                       }
                       tagName='a'
@@ -281,10 +334,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.previousPrice = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.previousPrice = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='del'
@@ -310,7 +363,7 @@ const LandingOne = (props) => {
                 </h6>
 
                 <div className='OrderNow'>
-                  <Link href='' className='bg'>
+                  <Link href='#form_part' className='bg'>
                     অর্ডার করুন <BsArrowRight />{" "}
                   </Link>
                 </div>
@@ -320,11 +373,16 @@ const LandingOne = (props) => {
             <Col lg={6}>
               <div className='BannerImg'>
                 <img
-                  src={
-                    banner === undefined
-                      ? "/images/landing_2/banner.png"
-                      : banner
-                  }
+                src={
+                  banner === undefined
+                    ? `${galleryImage1.file_name}`
+                    : banner
+                }
+                  // src={
+                  //   banner === undefined
+                  //     ? "/images/landing_2/banner.png"
+                  //     : banner
+                  // }
                   alt=''
                 />
                 {editActive === true && (
@@ -388,10 +446,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.cardOneTitle = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.cardOneTitle = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='h3'
@@ -423,10 +481,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.cardOneText = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.cardOneText = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='h6'
@@ -468,10 +526,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.cardTwoTitle = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.cardTwoTitle = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='h3'
@@ -503,10 +561,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.cardTwoText = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.cardTwoText = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='h6'
@@ -548,10 +606,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.cardThreeTitle = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.cardThreeTitle = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='h3'
@@ -583,10 +641,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.cardThreeText = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.cardThreeText = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='h6'
@@ -628,10 +686,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.cardFourTitle = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.cardFourTitle = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='h3'
@@ -663,10 +721,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.cardFourText = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.cardFourText = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='h6'
@@ -713,10 +771,10 @@ const LandingOne = (props) => {
                       onChange={(e) =>
                         setProp(
                           (props) =>
-                            (props.whyBuyOurProduct = e.target.value.replace(
-                              /<\/?[^>]+(>|$)/g,
-                              ""
-                            ))
+                          (props.whyBuyOurProduct = e.target.value.replace(
+                            /<\/?[^>]+(>|$)/g,
+                            ""
+                          ))
                         )
                       }
                       tagName='h6'
@@ -746,7 +804,7 @@ const LandingOne = (props) => {
                   <img src='/images/landing_2/video.png' alt='' />
                 </div>
 
-                <Link href='' className='bg'>
+                <Link href='#form_part' className='bg'>
                   অর্ডার করুন <BsArrowRight />{" "}
                 </Link>
               </div>
@@ -777,8 +835,8 @@ const LandingOne = (props) => {
                       onChange={(e) =>
                         setProp(
                           (props) =>
-                            (props.whyThisProductForYou =
-                              e.target.value.replace(/<\/?[^>]+(>|$)/g, ""))
+                          (props.whyThisProductForYou =
+                            e.target.value.replace(/<\/?[^>]+(>|$)/g, ""))
                         )
                       }
                       tagName='h3'
@@ -824,10 +882,10 @@ const LandingOne = (props) => {
                           onChange={(e) =>
                             setProp(
                               (props) =>
-                                (props.reason_1 = e.target.value.replace(
-                                  /<\/?[^>]+(>|$)/g,
-                                  ""
-                                ))
+                              (props.reason_1 = e.target.value.replace(
+                                /<\/?[^>]+(>|$)/g,
+                                ""
+                              ))
                             )
                           }
                           tagName='h3'
@@ -869,10 +927,10 @@ const LandingOne = (props) => {
                           onChange={(e) =>
                             setProp(
                               (props) =>
-                                (props.reason_2 = e.target.value.replace(
-                                  /<\/?[^>]+(>|$)/g,
-                                  ""
-                                ))
+                              (props.reason_2 = e.target.value.replace(
+                                /<\/?[^>]+(>|$)/g,
+                                ""
+                              ))
                             )
                           }
                           tagName='h3'
@@ -914,10 +972,10 @@ const LandingOne = (props) => {
                           onChange={(e) =>
                             setProp(
                               (props) =>
-                                (props.reason_3 = e.target.value.replace(
-                                  /<\/?[^>]+(>|$)/g,
-                                  ""
-                                ))
+                              (props.reason_3 = e.target.value.replace(
+                                /<\/?[^>]+(>|$)/g,
+                                ""
+                              ))
                             )
                           }
                           tagName='h3'
@@ -959,10 +1017,10 @@ const LandingOne = (props) => {
                           onChange={(e) =>
                             setProp(
                               (props) =>
-                                (props.reason_4 = e.target.value.replace(
-                                  /<\/?[^>]+(>|$)/g,
-                                  ""
-                                ))
+                              (props.reason_4 = e.target.value.replace(
+                                /<\/?[^>]+(>|$)/g,
+                                ""
+                              ))
                             )
                           }
                           tagName='h3'
@@ -1014,10 +1072,10 @@ const LandingOne = (props) => {
                       onChange={(e) =>
                         setProp(
                           (props) =>
-                            (props.whyOurProductIsGood = e.target.value.replace(
-                              /<\/?[^>]+(>|$)/g,
-                              ""
-                            ))
+                          (props.whyOurProductIsGood = e.target.value.replace(
+                            /<\/?[^>]+(>|$)/g,
+                            ""
+                          ))
                         )
                       }
                       tagName='h3'
@@ -1053,8 +1111,8 @@ const LandingOne = (props) => {
                       onChange={(e) =>
                         setProp(
                           (props) =>
-                            (props.whyOurProductIsGoodDescription =
-                              e.target.value.replace(/<\/?[^>]+(>|$)/g, ""))
+                          (props.whyOurProductIsGoodDescription =
+                            e.target.value.replace(/<\/?[^>]+(>|$)/g, ""))
                         )
                       }
                       tagName='h3'
@@ -1205,7 +1263,7 @@ const LandingOne = (props) => {
                         <input
                           type='checkbox'
                           id='delivary_input'
-                          defaultChecked={true}
+                          checked
                           placeholder=''
                         />
                         <label htmlFor='delivary_input'>
@@ -1262,9 +1320,18 @@ const LandingOne = (props) => {
                           <h5>Subtotal</h5>
                           <h5>{productQuantity * product?.price}</h5>
                         </li>
+                        <li className="d-flex">
+                          <h5>Shipping</h5>
+                          <div>
+                            <div>
+                              <div> <input type='checkbox' value={product?.inside_dhaka} onChange={handleChange} id="insideDhaka" checked={isCheckedInSideDhaka} /> Inside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.inside_dhaka}</span></div>
+                              <div> <input type='checkbox' value={product?.outside_dhaka} onChange={handleChange} id="outSideDhaka" checked={isCheckedInOutSideDhaka} /> Outside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.outside_dhaka}</span></div>
+                            </div>
+                          </div>
+                        </li>
                         <li className='d_flex d_justify'>
                           <h3>Total</h3>
-                          <h3> {productQuantity * product?.price}</h3>
+                          <h3> {productQuantity * product?.price+ parseInt(shippingCost)}</h3>
                         </li>
                       </ul>
                     </div>
@@ -1278,7 +1345,7 @@ const LandingOne = (props) => {
                       </p>
                       <button className='bg' type='submit'>
                         <i className='fas fa-lock' /> Place Order ৳ TK{" "}
-                        {productQuantity * product?.price}
+                        {productQuantity * product?.price + parseInt(shippingCost)}
                       </button>
                     </div>
                   </div>

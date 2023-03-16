@@ -12,27 +12,64 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import swal from "sweetalert";
 import { useRouter } from "next/router";
+
 const LandingThirteen = () => {
   const [product, setProduct] = useState({});
   const [shopID, setShopID] = useState();
   const [quantity, setQuantity] = useState(1);
+  const [PageInfo, setPageInfo] = useState({})
 
-  async function fetchProducts(headers) {
-    const response = await fetch(`${process.env.API_URL}v1/customer/products`, {
-      headers: headers,
-    });
-    const data = await response.json();
 
-    setProduct(data.data[data.data?.length - 1]);
+  //shipping cost add
+  const [isCheckedInSideDhaka, setIsCheckedInSideDhaka] = useState(true);
+  const [isCheckedInOutSideDhaka, setIsCheckedInOutSideDhaka] = useState(false);
+  const [shippingCost, setShippingCost] = useState()
+  const handleChange = e => {
+    if (e.target.id === "insideDhaka") {
+      setIsCheckedInSideDhaka(!isCheckedInSideDhaka);
+      setIsCheckedInOutSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
+    else if (e.target.id === "outSideDhaka") {
+      setIsCheckedInOutSideDhaka(!isCheckedInOutSideDhaka)
+      setIsCheckedInSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
   }
+
+
+// console.log("shippingCost", shippingCost)
+  const router = useRouter();
+  const shopDomainName = router.query.shopName;
+  const { page } = router.query;
+  const getPageInfo = async (page) => {
+    const pageInformation = await axios.get(
+      `${process.env.API_URL}v1/page/${page}`
+    );
+    console.log('pageInformation', pageInformation)
+    setPageInfo(pageInformation?.data?.data);
+    setProduct(pageInformation?.data?.data?.product)
+    setShippingCost(pageInformation?.data?.data?.product?.inside_dhaka)
+  };
+
 
   useEffect(() => {
     const headers = {
       "shop-id": localStorage.getItem("shop_id"),
     };
-    fetchProducts(headers).then((r) => console.log());
+    // fetchProducts(headers).then((r) => console.log());
     setShopID(localStorage.getItem("shop_id"));
   }, [shopID]);
+  const headers = {
+    domain: shopDomainName,
+  };
+
+  useEffect(() => {
+    if (page !== undefined) {
+      getPageInfo(page);
+    }
+
+  }, [shopDomainName])
 
   const handleQuantityChange = (e) => {
     setQuantity(parseInt(e.target.value));
@@ -45,7 +82,6 @@ const LandingThirteen = () => {
     watch,
     formState: { errors },
   } = useForm();
-  const router = useRouter();
   const shop_name = router.query.shopName;
   const onSubmit = (data) => {
     console.log("postBody", data);
@@ -55,6 +91,8 @@ const LandingThirteen = () => {
       customer_address: data.customerAddress,
       product_id: [product.id],
       product_qty: [quantity],
+      shipping_cost: shippingCost,
+
     };
 
     axios
@@ -75,6 +113,8 @@ const LandingThirteen = () => {
         });
       });
   };
+
+
   return (
     <div className={styles.LandingThirteen}>
       {/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -134,7 +174,7 @@ const LandingThirteen = () => {
                 </div>
 
                 <div className={styles.btnBox}>
-                  <Link href='' className={styles.bg}>
+                  <Link href='#OrderConfirmFrom' className={styles.bg}>
                     {" "}
                     অর্ডার করুন
                   </Link>
@@ -300,7 +340,7 @@ const LandingThirteen = () => {
               </div>
 
               <div className={styles.btnBox}>
-                <Link href='' className={styles.bg}>
+                <Link href='#OrderConfirmFrom' className={styles.bg}>
                   অর্ডার করতে এখানে ক্লিক করুন
                 </Link>
               </div>
@@ -346,7 +386,7 @@ const LandingThirteen = () => {
             <Col lg={6}>
               <div className={styles.imageBox}>
                 <div className={styles.btnBox}>
-                  <Link href='' className={styles.bg}>
+                  <Link href='#OrderConfirmFrom' className={styles.bg}>
                     <AiOutlineShoppingCart /> অর্ডার করুন
                   </Link>
                 </div>
@@ -490,7 +530,7 @@ const LandingThirteen = () => {
       {/* Section Gaps */}
       <div className={styles.section_gaps}></div>
 
-      <section className='OrderConfirmFrom'>
+      <section className='OrderConfirmFrom' id="OrderConfirmFrom">
         <Container>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Row>
@@ -508,23 +548,23 @@ const LandingThirteen = () => {
                   <h3>Billing details</h3>
 
                   <div className='CustomeInput'>
-                  <input type="text"
-                    {...register("customerName", { required: true })}
-                  placeholder='আপনার নাম লিখুন *' />
+                    <input type="text"
+                      {...register("customerName", { required: true })}
+                      placeholder='আপনার নাম লিখুন *' />
                     {errors.customerName && (
                       <span style={{ color: "red" }}>Name is required</span>
                     )}
                   </div>
 
                   <div className='CustomeInput'>
-                  <input type="text"
-                   {...register(
-                    "customerMobile",
-                    { required: true },
-                    { min: 11, max: 15 }
-                  )}
-                   placeholder='আপনার মোবাইল নাম্বার লিখুন *' />
-                   {errors.customerMobile && (
+                    <input type="text"
+                      {...register(
+                        "customerMobile",
+                        { required: true },
+                        { min: 11, max: 15 }
+                      )}
+                      placeholder='আপনার মোবাইল নাম্বার লিখুন *' />
+                    {errors.customerMobile && (
                       <span style={{ color: "red" }}>
                         Valid Mobile Number require
                       </span>
@@ -532,9 +572,9 @@ const LandingThirteen = () => {
                   </div>
 
                   <div className='CustomeInput'>
-                  <input
-                   {...register("customerAddress", { required: true })}
-                   type="text"  placeholder='আপনার সম্পূর্ণ ঠিকানা লিখুন *' />
+                    <input
+                      {...register("customerAddress", { required: true })}
+                      type="text" placeholder='আপনার সম্পূর্ণ ঠিকানা লিখুন *' />
                     {errors.customerAddress && (
                       <span style={{ color: "red" }}>Address is required</span>
                     )}
@@ -545,7 +585,7 @@ const LandingThirteen = () => {
                     <h3>Paymet</h3>
 
                     <div className='CustomeInput d_flex'>
-                      <input type='checkbox' name='' id='CashOn' />
+                      <input type='checkbox' checked={true} name='' id='CashOn' />
                       <label htmlFor='CashOn'>ক্যাশ অন ডেলিভারি</label>
                     </div>
 
@@ -570,17 +610,17 @@ const LandingThirteen = () => {
                     <li>
                       <div className='left d_flex'>
                         <div className='img'>
-                        <img  src={product?.main_image?.name} alt='' />
+                          <img src={product?.main_image?.name} alt='' />
                         </div>
 
                         <p>{product?.product_name}</p>
                       </div>
 
                       <div className='right d_flex'>
-                      <input type='number'
-                       onChange={handleQuantityChange}
-                       defaultValue={1}
-                       min={1} />
+                        <input type='number'
+                          onChange={handleQuantityChange}
+                          defaultValue={1}
+                          min={1} />
 
                         <h5>BDT {product?.price}</h5>
                       </div>
@@ -588,18 +628,30 @@ const LandingThirteen = () => {
 
                     <li>
                       <h5>Subtotal</h5>
-                      <h5>{quantity * product?.price}</h5>
+                      <h5>৳ {quantity * product?.price}</h5>
+                    </li>
+
+                    <li>
+                      <h5>Shipping</h5>
+                      <div>
+
+                        <div>
+                          <div> <input type='checkbox' value={product?.inside_dhaka} onChange={handleChange} id="insideDhaka" checked={isCheckedInSideDhaka} /> Inside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.inside_dhaka}</span></div>
+                          <div> <input type='checkbox' value={product?.outside_dhaka} onChange={handleChange} id="outSideDhaka" checked={isCheckedInOutSideDhaka} /> Outside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.outside_dhaka}</span></div>
+                        </div>
+
+                      </div>
                     </li>
 
                     <li>
                       <h4>Total</h4>
-                      <h4>{quantity * product?.price}</h4>
+                      <h4>৳ {quantity * product?.price + parseInt(shippingCost)}</h4>
                     </li>
                   </ul>
 
                   <button>
                     {" "}
-                    <RiShoppingCart2Line /> Place Order BDT {quantity * product?.price}
+                    <RiShoppingCart2Line /> Place Order BDT {quantity * product?.price + parseInt(shippingCost)}
                   </button>
                 </div>
               </Col>
@@ -677,7 +729,6 @@ const LandingThirteen = () => {
                 <Col xl={4} lg={4} md={4}>
                   <div className={styles.footermenu}>
                     <h5>Email us</h5>
-
                     <ul className=''>
                       <li>
                         <Link href='#'>

@@ -17,7 +17,7 @@ const options = [
   },
 ];
 
-const Menubar = ({ name, ...props }) => {
+const Menubar = ({ name, shopData, ...props }) => {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -32,6 +32,13 @@ const Menubar = ({ name, ...props }) => {
 
   const [categories, setCategories] = useState([]);
   const [shopName, setShopName] = useState();
+
+  const [subdomain, setSubdomain] = useState("")
+  useEffect(() => {
+    const subdomain = /:\/\/([^\/]+)/.exec(window.location.href)[1].split('.');
+    setSubdomain(subdomain)
+  }, [])
+
   async function handleFetchCategories(headers) {
     // ${process.env.API_URL}v1/customer/categories
     const response = await fetch(
@@ -51,7 +58,7 @@ const Menubar = ({ name, ...props }) => {
     const headers = {
       "shop-id": localStorage.getItem("shop_id"),
     };
-	setShopName(localStorage.getItem('shop_name'));
+    setShopName(localStorage.getItem('shop_name'));
     handleFetchCategories(headers)
     // .then((r) => console.log("r", r));
   }, []);
@@ -119,16 +126,36 @@ const Menubar = ({ name, ...props }) => {
                       <nav className='animated bounceInDown'>
                         <ul>
                           <li className='active'>
-                            <a href='#profile'>Home</a>
+                            <Link
+                              className='nav-link active'
+                              aria-current='page'
+                              // href={`/${subdomain.length <= 1 ? shopName : ''}`}
+                              href={`/${shopName}`}
+                            >
+                              Home
+                            </Link>
                           </li>
                           <li>
-                            <a href='#about-us'>About us</a>
+                            <Link className='nav-link'
+                              // href={`/${subdomain.length <= 1 ? shopName : ''}/shop`} 
+                              href={`/${shopName}/shop`}
+                            >
+                              Products
+                            </Link>
                           </li>
                           <li className='sub-menu'>
-                            <a href='#contact-us'>Contact Us</a>
+                            <Link className='nav-link' href='#'>
+                              Categories
+                              <BsFillCaretDownFill />
+                            </Link>
                           </li>
                           <li>
-                            <a href='#message'>Logout</a>
+                            <Link className='nav-link'
+                              // href={`/${subdomain.length <= 1 ? shopName : ''}/about-us`}  
+                              href={`/${shopName}/about-us`}
+                            >
+                              About us
+                            </Link>
                           </li>
                         </ul>
                       </nav>
@@ -162,8 +189,10 @@ const Menubar = ({ name, ...props }) => {
           <div className='DesktopMenu'>
             <Row className='navrow'>
               <Col lg={3}>
-                <Link className='navbar-brand' href={`/${shopName}`}>
-                  <img src='/images/theme_2/logo.png' alt='site logo' />
+                <Link className='navbar-brand theme_two_logo' href="#">
+                  <img
+                    src={shopData?.shop_logo !== null || shopData?.shop_logo !== undefined ? shopData?.shop_logo?.name : "/images/theme_2/logo.png"}
+                  />
                 </Link>
               </Col>
 
@@ -173,7 +202,8 @@ const Menubar = ({ name, ...props }) => {
                     <Link
                       className='nav-link active'
                       aria-current='page'
-                      href={`/${shopName}`}
+                      // href={`/${subdomain.length <= 1 ? shopName : ''}`}
+                        href={`/${shopName}`}
                     >
                       Home
                     </Link>
@@ -181,7 +211,10 @@ const Menubar = ({ name, ...props }) => {
                   </li>
                   <li className='nav-item px-lg-2 mx-lg-1'>
 
-                    <Link className='nav-link' href={`/${shopName}/shop`}>
+                    <Link className='nav-link'
+                      // href={`/${subdomain.length <= 1 ? shopName : ''}/shop`}  
+                      href={`/${shopName}/shop`}
+                      >
                       Products
                     </Link>
                   </li>
@@ -204,11 +237,14 @@ const Menubar = ({ name, ...props }) => {
                       </ul>
                     </div>
                   </li>
-                  {/* <li className='nav-item px-lg-2 mx-lg-1'>
-                    <a className='nav-link' href='/theme-two/product-details'>
-                      Single product
-                    </a>
-                  </li> */}
+                  <li className='nav-item px-lg-2 mx-lg-1'>
+                    <Link className='nav-link'
+                      // href={`/${subdomain.length <= 1 ? shopName : ''}/about-us`}  
+                      href={`/${shopName}/about-us`}
+                      >
+                      About us
+                    </Link>
+                  </li>
                 </ul>
               </Col>
 
@@ -222,7 +258,7 @@ const Menubar = ({ name, ...props }) => {
                 {/* <div className='icondiv'>
                   <BiUser />
                 </div> */}
-{/*
+                {/*
                 <div className='icondiv'>
                   <FiHeart />
                   <span className='bg-black text-white'>22</span>

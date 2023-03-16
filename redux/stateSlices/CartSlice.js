@@ -45,9 +45,9 @@ const cartSlice = createSlice({
 
       if (state.cartItems[itemIndex].cartQuantity > 1) {
         state.cartItems[itemIndex].cartQuantity -= 1;
-        toast.info("Decreased product quantity", {
-          position: "top-right",
-        });
+        // toast.info("Decreased product quantity", {
+        //   position: "top-right",
+        // });
       } else if (state.cartItems[itemIndex].cartQuantity === 1) {
         const nextCartItems = state.cartItems.filter(
           (item) => item.id !== action.payload.id

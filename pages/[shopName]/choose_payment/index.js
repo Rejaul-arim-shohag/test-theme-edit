@@ -20,7 +20,7 @@ const index = () => {
 				</Frame>
 			</Editor>
 
-      <ChoosePayment></ChoosePayment>
+      {/* <ChoosePayment></ChoosePayment> */}
 
       <Delivary></Delivary>
       <Footer></Footer>

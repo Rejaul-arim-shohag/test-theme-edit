@@ -63,13 +63,46 @@ const index = ({ data }) => {
 	  setShopInfo(shop);
   },[])
 
+
+  const [shopData, setShopData] = useState({});
+  const { shopName } = router.query;
+  const headers = {
+    domain: shopName,
+  };
+
+  const getShopInfo = async () => {
+    try {
+      const shopInfo = await axios.post(
+        `${process.env.API_URL}v1/shops/info`,
+        {},
+        { headers: headers }
+      );
+      const shopData = shopInfo?.data?.data;
+      setShopData(shopData)
+    } catch (err) {
+      // console.log("err", err);
+      // router.push("/404");
+    }
+  };
+  useEffect(() => {
+    if (shopName !== undefined) {
+      getShopInfo();
+    }
+  }, [shopName]);
+
   return (
     <>
+     <Head>
+        <title>{shopData?.shop_meta_title}</title>
+        <meta name="description" content={shopData?.shop_meta_description} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href={shopData?.shop_favicon?.name} />
+      </Head>
       {/* theme_1 detail page */}
-      {shopInfo?.theme === "multiple_one"  && (
+      {shopInfo?.theme == 201  && (
         <>
           <main>
-            <Header></Header>
+            <Header shopData={shopData}></Header>
             <Editor resolver={{ MenuBar }}>
               <Frame>
                 <MenuBar
@@ -82,21 +115,21 @@ const index = ({ data }) => {
               </Frame>
             </Editor>
             <ProductDescription data={singleProduct}></ProductDescription>
-            <Delivary></Delivary>
-            <Footer></Footer>
-            <SocialMedia></SocialMedia>
-            <TinyFooter></TinyFooter>
+            {/* <Delivary></Delivary> */}
+            <Footer shopData={shopData}></Footer>
+            <SocialMedia shopData={shopData}></SocialMedia>
+            <TinyFooter shopData={shopData}></TinyFooter>
           </main>
           <footer></footer>
         </>
       )}
       {/* theme_two details page */}
-      {shopInfo?.theme === "multiple_two"  && (
+      {shopInfo?.theme == 202  && (
         <div className='ThemeTwo'>
-          <Menubar2 />
-          <ProductInfo2 data={singleProduct}/>
-          <ProductDescription2 data={singleProduct}/>
-          <Footer2 />
+          <Menubar2 shopData={shopData}/>
+          <ProductInfo2 shopData={shopData} data={singleProduct}/>
+          <ProductDescription2 shopData={shopData} data={singleProduct}/>
+          <Footer2 shopData={shopData}/>
         </div>
       )}
     </>
@@ -105,20 +138,3 @@ const index = ({ data }) => {
 
 export default index;
 
-// export async function getServerSideProps(context) {
-//   const { params } = context;
-//   // const shopId = window.localStorage.getItem("shop_id")
-//   const response = await fetch(
-//     `${process.env.API_URL}v1/customer/products/${params.productID}`,
-//     {
-//       method: "get",
-//       headers: {
-//         "shop-id": params.shopId,
-//       },
-//     }
-//   );
-//   const data = await response?.json();
-//   return {
-//     props: { data },
-//   };
-// }

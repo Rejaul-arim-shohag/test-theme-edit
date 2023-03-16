@@ -1,7 +1,7 @@
 import Link from "next/link";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Col, Container, Row, Form } from "react-bootstrap";
-import ReactPlayer from "react-player";
+// import ReactPlayer from "react-player";
 import { BiPhoneCall } from "react-icons/bi";
 import { FaFacebookF } from "react-icons/fa";
 import { AiFillYoutube, AiOutlineInstagram } from "react-icons/ai";
@@ -24,35 +24,70 @@ import Context from "../../Context";
 import { useRouter } from 'next/router'
 
 const LandingOne = (props) => {
+console.log('data', props)
   const [product, setProduct] = useState({});
 
   const [shopID, setShopID] = useState();
-  async function fetchProducts(headers) {
-    const response = await fetch(`${process.env.API_URL}v1/customer/products`, {
-      headers: headers,
-    });
-    const data = await response.json();
 
-    setProduct(data.data[data.data?.length - 1]);
+  //shipping cost add
+  const [isCheckedInSideDhaka, setIsCheckedInSideDhaka] = useState(true);
+  const [isCheckedInOutSideDhaka, setIsCheckedInOutSideDhaka] = useState(false);
+  const [shippingCost, setShippingCost] = useState()
+  const handleChange = e => {
+    if (e.target.id === "insideDhaka") {
+      setIsCheckedInSideDhaka(!isCheckedInSideDhaka);
+      setIsCheckedInOutSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
+    else if (e.target.id === "outSideDhaka") {
+      setIsCheckedInOutSideDhaka(!isCheckedInOutSideDhaka)
+      setIsCheckedInSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
   }
+
+  const galleryImage1 = JSON.parse(props.gallery1);
+  const galleryImage2 = JSON.parse(props.gallery2);
+  const galleryImage3 = JSON.parse(props.gallery3);
+  const galleryImage4 = JSON.parse(props.gallery4);
+  const galleryImage5 = JSON.parse(props.gallery5);
+  const galleryImage6 = JSON.parse(props.gallery6);
 
   useEffect(() => {
     const headers = {
-     "shop-id": localStorage.getItem("shop_id"),
+      "shop-id": localStorage.getItem("shop_id"),
     };
-    fetchProducts(headers).then((r) => console.log());
+    // fetchProducts(headers).then((r) => console.log());
     setShopID(localStorage.getItem("shop_id"));
   }, [shopID]);
 
   const [quantity, setQuantity] = useState(1);
- 
 
-  const handleQuantityChange=(e)=>{
+
+  const handleQuantityChange = (e) => {
     setQuantity(parseInt(e.target.value))
 
   }
   const router = useRouter();
   const shop_name = router.query.shopName;
+  const galleries = []
+
+
+  const { page } = router.query;
+  const getPageInfo = async (page) => {
+    const pageInformation = await axios.get(
+      `${process.env.API_URL}v1/page/${page}`
+    );
+    // setPageInfo(pageInformation.data.data);
+    setProduct(pageInformation.data.data.product)
+    setShippingCost(pageInformation?.data?.data?.product?.inside_dhaka)
+  };
+  useEffect(() => {
+    if (page !== undefined) {
+      getPageInfo(page);
+    }
+
+  }, [shop_name])
 
   const {
     register,
@@ -62,7 +97,7 @@ const LandingOne = (props) => {
   } = useForm();
 
   const onSubmit = (data) => {
-    console.log("hello")
+    //console.log("hello")
     // console.log(`${process.env.API_URL}v1/customer/order/store`);
     const postBody = {
       // shop_id: shopId,
@@ -71,6 +106,8 @@ const LandingOne = (props) => {
       customer_address: data.customerAddress,
       product_id: [product.id],
       product_qty: [quantity],
+      shipping_cost: shippingCost,
+
     };
 
     axios
@@ -83,7 +120,7 @@ const LandingOne = (props) => {
         }
       })
       .catch((err) => {
-        console.log(err);
+        //console.log(err);
         swal({
           title: "Sorry",
           text: "Something went wrong",
@@ -108,17 +145,21 @@ const LandingOne = (props) => {
   }));
   const contextValue = useContext(Context);
   let editActive = false;
-
   //logo
   const [logo, setLogo] = useState();
+  
   if (contextValue !== undefined) {
     editActive = contextValue.value;
     useEffect(() => {
+		console.log('contextValue',contextValue);
       if (contextValue.value1 === true) {
+		//console.log('contextValue2',contextValue);
         const serialize = query.serialize();
-        props.save(serialize);
+		//console.log('contextValue3',contextValue);
+        props.save(serialize,props.id);
+		//console.log('contextValue4',contextValue);
         if (logo !== undefined) {
-          props.save(JSON.stringify(logo));
+          props.save(JSON.stringify(logo),props.id);
         }
       }
     }, [contextValue.value1]);
@@ -126,6 +167,14 @@ const LandingOne = (props) => {
   const inputFile = useRef(null);
   const handleChangeLogo = (e) => {
     setLogo(URL.createObjectURL(e.target.files[0]));
+    props.setLogo(e.target.files[0]);
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('logoInf', reader.result);
+    });
   };
   const onButtonClick = () => {
     inputFile.current.click();
@@ -136,6 +185,13 @@ const LandingOne = (props) => {
   const gallery_1_inputFile = useRef(null);
   const handleChangegallery_1 = (e) => {
     setGallery_1(URL.createObjectURL(e.target.files[0]));
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('gallery_1', reader.result);
+    });
   };
   const ongallery_1ButtonClick = () => {
     gallery_1_inputFile.current.click();
@@ -146,9 +202,80 @@ const LandingOne = (props) => {
   const gallery_2_inputFile = useRef(null);
   const handleChangegallery_2 = (e) => {
     setGallery_2(URL.createObjectURL(e.target.files[0]));
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('gallery_2', reader.result);
+    });
   };
   const ongallery_2ButtonClick = () => {
     gallery_2_inputFile.current.click();
+  };
+  //productImageGallery3  
+  const [gallery_3, setGallery_3] = useState();
+  const gallery_3_inputFile = useRef(null);
+  const handleChangegallery_3 = (e) => {
+    setGallery_3(URL.createObjectURL(e.target.files[0]));
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('gallery_3', reader.result);
+    });
+  };
+  const ongallery_3ButtonClick = () => {
+    gallery_3_inputFile.current.click();
+  };
+  //productImageGallery4
+  const [gallery_4, setGallery_4] = useState();
+  const gallery_4_inputFile = useRef(null);
+  const handleChangegallery_4 = (e) => {
+    setGallery_4(URL.createObjectURL(e.target.files[0]));
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('gallery_4', reader.result);
+    });
+  };
+  const ongallery_4ButtonClick = () => {
+    gallery_4_inputFile.current.click();
+  };
+  //productImageGallery5
+  const [gallery_5, setGallery_5] = useState();
+  const gallery_5_inputFile = useRef(null);
+  const handleChangegallery_5 = (e) => {
+    setGallery_5(URL.createObjectURL(e.target.files[0]));
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('gallery_5', reader.result);
+    });
+  };
+  const ongallery_5ButtonClick = () => {
+    gallery_5_inputFile.current.click();
+  };
+  //productImageGallery6
+  const [gallery_6, setGallery_6] = useState();
+  const gallery_6_inputFile = useRef(null);
+  const handleChangegallery_6 = (e) => {
+    setGallery_6(URL.createObjectURL(e.target.files[0]));
+    const reader = new FileReader();
+
+    reader.readAsDataURL(e.target.files[0]);
+
+    reader.addEventListener('load', () => {
+      localStorage.setItem('gallery_6', reader.result);
+    });
+  };
+  const ongallery_6ButtonClick = () => {
+    gallery_6_inputFile.current.click();
   };
 
   return (
@@ -163,7 +290,7 @@ const LandingOne = (props) => {
                 <div className='logo Desktop'>
                   <img
                     src={
-                      logo === undefined ? "/images/landing_1/logo.png" : logo
+                      logo === undefined ? props.logo : logo
                     }
 
                     alt=''
@@ -207,10 +334,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.heroContent = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.heroContent = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='a'
@@ -244,9 +371,9 @@ const LandingOne = (props) => {
 
               <div className={styles.banner_img}>
                 <img
-                //  src='images/landing_1/banner.png'
-                src='/images/landing_1/banner.png'
-                alt='image' />
+                  //  src='images/landing_1/banner.png'
+                  src='/images/landing_1/banner.png'
+                  alt='image' />
               </div>
             </Col>
           </Row>
@@ -331,10 +458,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.orderTitle = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.orderTitle = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='a'
@@ -352,10 +479,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.productPrice = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.productPrice = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='a'
@@ -377,7 +504,7 @@ const LandingOne = (props) => {
                     />
                   )}
 
-                  <Link href='' className={styles.bg} activeClass='active'>
+                  <Link href='#OrderConfirmFrom' className={styles.bg} activeClass='active'>
                     অর্ডার করুন
                   </Link>
                 </div>
@@ -404,10 +531,10 @@ const LandingOne = (props) => {
                       onChange={(e) =>
                         setProp(
                           (props) =>
-                            (props.whyBuyOurProduct = e.target.value.replace(
-                              /<\/?[^>]+(>|$)/g,
-                              ""
-                            ))
+                          (props.whyBuyOurProduct = e.target.value.replace(
+                            /<\/?[^>]+(>|$)/g,
+                            ""
+                          ))
                         )
                       }
                       tagName='a'
@@ -456,11 +583,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsTittleOne =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsTittleOne =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -494,11 +621,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsDecOne =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsDecOne =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -546,11 +673,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsTittleTwo =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsTittleTwo =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -584,11 +711,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsDecTwo =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsDecTwo =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -636,11 +763,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsTittleThree =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsTittleThree =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -676,11 +803,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsDecThree =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsDecThree =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -728,11 +855,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsTittleFour =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsTittleFour =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -768,11 +895,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsDecFour =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsDecFour =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -820,11 +947,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsTittleFive =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsTittleFive =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -860,11 +987,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsDecFive =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsDecFive =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -912,11 +1039,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsTittleSix =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsTittleSix =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -950,11 +1077,11 @@ const LandingOne = (props) => {
                             onChange={(e) =>
                               setProp(
                                 (props) =>
-                                  (props.whyChooseUsDecSix =
-                                    e.target.value.replace(
-                                      /<\/?[^>]+(>|$)/g,
-                                      ""
-                                    ))
+                                (props.whyChooseUsDecSix =
+                                  e.target.value.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                  ))
                               )
                             }
                             tagName='a'
@@ -1025,10 +1152,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.buttonInnerText = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.buttonInnerText = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='a'
@@ -1063,10 +1190,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.productPrice = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.productPrice = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='a'
@@ -1100,10 +1227,10 @@ const LandingOne = (props) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.deliveryType = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.deliveryType = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='a'
@@ -1154,10 +1281,10 @@ const LandingOne = (props) => {
                       onChange={(e) =>
                         setProp(
                           (props) =>
-                            (props.productDescription = e.target.value.replace(
-                              /<\/?[^>]+(>|$)/g,
-                              ""
-                            ))
+                          (props.productDescription = e.target.value.replace(
+                            /<\/?[^>]+(>|$)/g,
+                            ""
+                          ))
                         )
                       }
                       tagName='a'
@@ -1188,6 +1315,7 @@ const LandingOne = (props) => {
           {/* customized */}
           <div className={styles.gallery_content}>
             <Row>
+
               <Col lg={4} sm={4}>
                 <div className={styles.gallery_item}>
                   {/* img1 */}
@@ -1195,7 +1323,7 @@ const LandingOne = (props) => {
                     <img
                       src={
                         gallery_1 === undefined
-                          ? "/images/landing_1/gal-1.png"
+                          ? `${galleryImage1.file_name}`
                           : gallery_1
                       }
                       alt=''
@@ -1230,51 +1358,217 @@ const LandingOne = (props) => {
                   </div>
                 </div>
               </Col>
-
-              <Col lg={4} sm={4}>
+			  <Col lg={4} sm={4}>
                 <div className={styles.gallery_item}>
                   {/* img 2*/}
                   <div className={styles.gal_img}>
-                    <img src='/images/landing_1/gal-2.png' alt='' />
+                    <img
+                      src={
+                        gallery_2 === undefined
+                          ? `${galleryImage2.file_name}`
+                          : gallery_2
+                      }
+                      alt=''
+                    />
+                    {editActive === true && (
+                      <>
+                        {" "}
+                        <input
+                          type='file'
+                          id='file'
+                          onChange={handleChangegallery_2}
+                          ref={gallery_2_inputFile}
+                          style={{ display: "none" }}
+                        />
+                        <span
+                          style={{ marginLeft: "4px", cursor: "pointer" }}
+                          onClick={ongallery_2ButtonClick}
+                        >
+                          <svg
+                            fill='#000'
+                            height='20px'
+                            width='20px'
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 306.637 306.637'
+                            xmlSpace='preserve'
+                          >
+                            <path d='M12.809 238.52L0 306.637l68.118-12.809 184.277-184.277-55.309-55.309L12.809 238.52zm47.981 41.423l-41.992 7.896 7.896-41.992L197.086 75.455l34.096 34.096L60.79 279.943zM251.329 0l-41.507 41.507 55.308 55.308 41.507-41.507L251.329 0zm-20.294 41.507l20.294-20.294 34.095 34.095-20.294 20.294-34.095-34.095z' />
+                          </svg>
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Col>
-
               <Col lg={4} sm={4}>
                 <div className={styles.gallery_item}>
                   {/* img3 */}
                   <div className={styles.gal_img}>
-                    <img src='/images/landing_1/gal-3.png' alt='' />
+                    <img
+                      src={
+                        gallery_3 === undefined
+                          ? `${galleryImage3.file_name}`
+                          : gallery_3
+                      }
+                      alt=''
+                    />
+                    {editActive === true && (
+                      <>
+                        {" "}
+                        <input
+                          type='file'
+                          id='file'
+                          onChange={handleChangegallery_3}
+                          ref={gallery_3_inputFile}
+                          style={{ display: "none" }}
+                        />
+                        <span
+                          style={{ marginLeft: "4px", cursor: "pointer" }}
+                          onClick={ongallery_3ButtonClick}
+                        >
+                          <svg
+                            fill='#000'
+                            height='20px'
+                            width='20px'
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 306.637 306.637'
+                            xmlSpace='preserve'
+                          >
+                            <path d='M12.809 238.52L0 306.637l68.118-12.809 184.277-184.277-55.309-55.309L12.809 238.52zm47.981 41.423l-41.992 7.896 7.896-41.992L197.086 75.455l34.096 34.096L60.79 279.943zM251.329 0l-41.507 41.507 55.308 55.308 41.507-41.507L251.329 0zm-20.294 41.507l20.294-20.294 34.095 34.095-20.294 20.294-34.095-34.095z' />
+                          </svg>
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Col>
-
               <Col lg={4} sm={4}>
                 <div className={styles.gallery_item}>
                   {/* img 4*/}
                   <div className={styles.gal_img}>
-                    <img src='/images/landing_1/gal-4.png' alt='' />
+                    <img
+                      src={
+                        gallery_4 === undefined
+                          ? `${galleryImage4.file_name}`
+                          : gallery_4
+                      }
+                      alt=''
+                    />
+                    {editActive === true && (
+                      <>
+                        {" "}
+                        <input
+                          type='file'
+                          id='file'
+                          onChange={handleChangegallery_4}
+                          ref={gallery_4_inputFile}
+                          style={{ display: "none" }}
+                        />
+                        <span
+                          style={{ marginLeft: "4px", cursor: "pointer" }}
+                          onClick={ongallery_4ButtonClick}
+                        >
+                          <svg
+                            fill='#000'
+                            height='20px'
+                            width='20px'
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 306.637 306.637'
+                            xmlSpace='preserve'
+                          >
+                            <path d='M12.809 238.52L0 306.637l68.118-12.809 184.277-184.277-55.309-55.309L12.809 238.52zm47.981 41.423l-41.992 7.896 7.896-41.992L197.086 75.455l34.096 34.096L60.79 279.943zM251.329 0l-41.507 41.507 55.308 55.308 41.507-41.507L251.329 0zm-20.294 41.507l20.294-20.294 34.095 34.095-20.294 20.294-34.095-34.095z' />
+                          </svg>
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Col>
-
               <Col lg={4} sm={4}>
                 <div className={styles.gallery_item}>
                   {/* img5 */}
                   <div className={styles.gal_img}>
-                    <img src='/images/landing_1/gal-1.png' alt='' />
+                    <img
+                      src={
+                        gallery_5 === undefined
+                          ? `${galleryImage5.file_name}`
+                          : gallery_5
+                      }
+                      alt=''
+                    />
+                    {editActive === true && (
+                      <>
+                        {" "}
+                        <input
+                          type='file'
+                          id='file'
+                          onChange={handleChangegallery_5}
+                          ref={gallery_5_inputFile}
+                          style={{ display: "none" }}
+                        />
+                        <span
+                          style={{ marginLeft: "4px", cursor: "pointer" }}
+                          onClick={ongallery_5ButtonClick}
+                        >
+                          <svg
+                            fill='#000'
+                            height='20px'
+                            width='20px'
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 306.637 306.637'
+                            xmlSpace='preserve'
+                          >
+                            <path d='M12.809 238.52L0 306.637l68.118-12.809 184.277-184.277-55.309-55.309L12.809 238.52zm47.981 41.423l-41.992 7.896 7.896-41.992L197.086 75.455l34.096 34.096L60.79 279.943zM251.329 0l-41.507 41.507 55.308 55.308 41.507-41.507L251.329 0zm-20.294 41.507l20.294-20.294 34.095 34.095-20.294 20.294-34.095-34.095z' />
+                          </svg>
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Col>
-
               <Col lg={4} sm={4}>
                 <div className={styles.gallery_item}>
                   {/* img6 */}
                   <div className={styles.gal_img}>
-                    <img src='/images/landing_1/gal-2.png' alt='' />
+                    <img
+                      src={
+                        gallery_6 === undefined
+                          ? `${galleryImage6.file_name}`
+                          : gallery_6
+                      }
+                      alt=''
+                    />
+                    {editActive === true && (
+                      <>
+                        {" "}
+                        <input
+                          type='file'
+                          id='file'
+                          onChange={handleChangegallery_6}
+                          ref={gallery_6_inputFile}
+                          style={{ display: "none" }}
+                        />
+                        <span
+                          style={{ marginLeft: "4px", cursor: "pointer" }}
+                          onClick={ongallery_6ButtonClick}
+                        >
+                          <svg
+                            fill='#000'
+                            height='20px'
+                            width='20px'
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 306.637 306.637'
+                            xmlSpace='preserve'
+                          >
+                            <path d='M12.809 238.52L0 306.637l68.118-12.809 184.277-184.277-55.309-55.309L12.809 238.52zm47.981 41.423l-41.992 7.896 7.896-41.992L197.086 75.455l34.096 34.096L60.79 279.943zM251.329 0l-41.507 41.507 55.308 55.308 41.507-41.507L251.329 0zm-20.294 41.507l20.294-20.294 34.095 34.095-20.294 20.294-34.095-34.095z' />
+                          </svg>
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Col>
+
             </Row>
           </div>
         </Container>
@@ -1590,10 +1884,10 @@ const LandingOne = (props) => {
 
 
 
-      <section className='OrderConfirmFrom'>
+      <section className='OrderConfirmFrom' id='OrderConfirmFrom'>
         <Container>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Row>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Row>
 
               {/* left */}
               <Col lg={7}>
@@ -1601,44 +1895,44 @@ const LandingOne = (props) => {
                   <h3>Billing details</h3>
 
                   <div className='CustomeInput'>
-                  <input
-                        {...register("customerName", { required: true })}
-                        type='text'
-                        placeholder=' আপনার নাম লিখুন'
-                      />
-                      {errors.customerName && (
-                        <span style={{ color: "red" }}>Name is required</span>
-                      )}
+                    <input
+                      {...register("customerName", { required: true })}
+                      type='text'
+                      placeholder=' আপনার নাম লিখুন'
+                    />
+                    {errors.customerName && (
+                      <span style={{ color: "red" }}>Name is required</span>
+                    )}
                   </div>
 
                   <div className='CustomeInput'>
-                  <input
-                        {...register(
-                          "customerMobile",
-                          { required: true },
-                          { min: 11, max: 15 }
-                        )}
-                        type='text'
-                        placeholder=' আপনার মোবাইল নাম্বার লিখুন'
-                      />
-                      {errors.customerMobile && (
-                        <span style={{ color: "red" }}>
-                          Valid Mobile Number require
-                        </span>
+                    <input
+                      {...register(
+                        "customerMobile",
+                        { required: true },
+                        { min: 11, max: 15 }
                       )}
+                      type='text'
+                      placeholder=' আপনার মোবাইল নাম্বার লিখুন'
+                    />
+                    {errors.customerMobile && (
+                      <span style={{ color: "red" }}>
+                        Valid Mobile Number require
+                      </span>
+                    )}
                   </div>
 
                   <div className='CustomeInput'>
-                  <input
-                        {...register("customerAddress", { required: true })}
-                        type='text'
-                        placeholder=' আপনার সম্পূর্ণ ঠিকানা লিখুন'
-                      />
-                      {errors.customerAddress && (
-                        <span style={{ color: "red" }}>
-                          Address is required
-                        </span>
-                      )}
+                    <input
+                      {...register("customerAddress", { required: true })}
+                      type='text'
+                      placeholder=' আপনার সম্পূর্ণ ঠিকানা লিখুন'
+                    />
+                    {errors.customerAddress && (
+                      <span style={{ color: "red" }}>
+                        Address is required
+                      </span>
+                    )}
                   </div>
 
                   {/* Payment */}
@@ -1646,7 +1940,7 @@ const LandingOne = (props) => {
                     <h3>Paymet</h3>
 
                     <div className='CustomeInput d_flex'>
-                      <input type='checkbox' name='' id='CashOn' />
+                      <input checked type='checkbox' name='' id='CashOn' />
                       <label htmlFor='CashOn'>ক্যাশ অন ডেলিভারি</label>
                     </div>
 
@@ -1678,7 +1972,7 @@ const LandingOne = (props) => {
                       </div>
 
                       <div className='right d_flex'>
-                        <input type='number'  onChange={handleQuantityChange}  defaultValue={1} min={1}/>
+                        <input type='number' onChange={handleQuantityChange} defaultValue={1} min={1} />
 
                         <h5>{product?.price}</h5>
                       </div>
@@ -1688,21 +1982,29 @@ const LandingOne = (props) => {
                       <h5>Subtotal</h5>
                       <h5>{quantity * product?.price}</h5>
                     </li>
-
+                    <li>
+                      <h5>Shipping</h5>
+                      <div>
+                        <div>
+                          <div> <input type='checkbox' value={product?.inside_dhaka} onChange={handleChange} id="insideDhaka" checked={isCheckedInSideDhaka} /> Inside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.inside_dhaka}</span></div>
+                          <div> <input type='checkbox' value={product?.outside_dhaka} onChange={handleChange} id="outSideDhaka" checked={isCheckedInOutSideDhaka} /> Outside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.outside_dhaka}</span></div>
+                        </div>
+                      </div>
+                    </li>
                     <li>
                       <h4>Total</h4>
-                      <h4>{quantity * product?.price}</h4>
+                      <h4>{quantity * product?.price + parseInt(shippingCost)}</h4>
                     </li>
                   </ul>
 
                   <button type='submit'>
                     {" "}
                     <RiShoppingCart2Line />
-                     Place Order {quantity * product?.price}
+                    Place Order {quantity * product?.price + parseInt(shippingCost)}
                   </button>
                 </div>
               </Col>
-          </Row>
+            </Row>
           </form>
         </Container>
       </section>

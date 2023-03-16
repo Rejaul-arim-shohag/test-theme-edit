@@ -13,9 +13,9 @@ import Theme2 from "../../Components/ThemePage/ThemeTwo/index";
 const index = () => {
 
 	const [shopInfo, setShopInfo] = useState({});
+	const [shopData, setShopData] = useState({});
 	const router = useRouter();
 	const { shopName } = router.query;
-
 
 	const headers = {
 		domain: shopName,
@@ -29,10 +29,8 @@ const index = () => {
 				{ headers: headers }
 			);
 			const shopData = shopInfo?.data?.data;
-			console.log("shopData", shopData)
-
+			setShopData(shopData)
 			localStorage.setItem("shop_id", shopData.shop_id);
-			// localStorage.setItem("shop_name", shopData.name);
 			localStorage.setItem("shop_name", shopData.domain);
 			localStorage.setItem("theme_id", shopData.theme_id);
 			localStorage.setItem("landing", shopData.landing);
@@ -54,21 +52,26 @@ const index = () => {
 
 	useEffect(() => {
 		if (shopName !== undefined) {
-				getShopInfo();
+			getShopInfo();
 		}
-
 	}, [shopName]);
-
 	return (
 		<>
-			{shopInfo.theme == 201  && (
-				<Theme1 />
+			<Head>
+				<title>{shopData?.shop_meta_title}</title>
+				<meta name="description" content={shopData?.shop_meta_description} />
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<link rel="icon" href={shopData?.shop_favicon?.name} />
+
+			</Head>
+			{shopInfo.theme == 201 && (
+				<Theme1 shopData={shopData} />
 			)}
-			{shopInfo.theme == 202  && (
-				<Theme2 />
+			{shopInfo.theme == 202 && (
+				<Theme2 shopData={shopData} />
 			)}
 
-			{(shopInfo.theme === "null" || shopInfo.theme === null)  && <DefaultTheme />}
+			{(shopInfo.theme === "null" || shopInfo.theme === null) && <DefaultTheme shopData={shopData} />}
 		</>
 	);
 };

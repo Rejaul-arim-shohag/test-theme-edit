@@ -15,6 +15,8 @@ import ProductListCarousel from "../../Components/ThemePage/ThemeTwo/HomePage/Pr
 import Head from 'next/head'
 const shop = () => {
   const [shopInfo, setShopInfo] = useState({});
+  const [shopData, setShopData] = useState({});
+
   const router = useRouter();
   const { shopName } = router.query;
   const headers = {
@@ -29,6 +31,7 @@ const shop = () => {
         { headers: headers }
       );
       const shopData = shopInfo?.data?.data;
+      setShopData(shopData)
       localStorage.setItem("shop_id", shopData.shop_id);
       localStorage.setItem("shop_name", shopData.domain);
       localStorage.setItem("theme_id", shopData.theme_id);
@@ -52,22 +55,18 @@ const shop = () => {
     }
   }, [shopName]);
 
-  const shop_meta_title = Cookies.get('shop_title')
-  const shop_meta_description = Cookies.get('shop_meta_description')
-  const shop_logo = Cookies.get('shop_logo')
-
   return (
     <>
      <Head>
-        <title>{shop_meta_title}</title>
-        <meta name="description" content={shop_meta_description} />
+        <title>{shopData?.shop_meta_title}</title>
+        <meta name="description" content={shopData?.shop_meta_description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href={shop_logo} />
+        <link rel="icon" href={shopData?.shop_favicon?.name} />
       </Head>
 
       {shopInfo?.theme == 201 && (
         <div>
-          <Header />
+          <Header shopData={shopData}/>
           <Editor resolver={{ MenuBar }}>
             <Frame>
               <MenuBar
@@ -80,17 +79,17 @@ const shop = () => {
             </Frame>
           </Editor>
           <Shop></Shop>
-          <Footer></Footer>
-          <SocialMedia></SocialMedia>
-          <TinyFooter></TinyFooter>
+          <Footer shopData={shopData}></Footer>
+          <SocialMedia shopData={shopData}></SocialMedia>
+          <TinyFooter shopData={shopData}></TinyFooter>
         </div>
       )}
 
       {shopInfo?.theme == 202 && (
         <div className='ThemeTwo'>
-          <Menubar2 />
+          <Menubar2 shopData={shopData}/>
           <ProductListCarousel />
-          <Footer2 />
+          <Footer2 shopData={shopData}/>
         </div>
       )}
     </>

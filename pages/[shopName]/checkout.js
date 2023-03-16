@@ -14,9 +14,42 @@ import Footer2 from "../../Components/ThemePage/ThemeTwo/Common/Footer";
 import ShippingAddress2 from "../../Components/ThemePage/ThemeTwo/ShipingAddress/ShippingAddress";
 import Cookies from "js-cookie";
 import Head from 'next/head'
+import { useRouter } from "next/router";
+import axios from "axios";
 
 const checkout = () => {
 	const [shopInfo, setShopInfo] =useState();
+  const [shopData, setShopData] = useState({});
+  const router = useRouter();
+  const { shopName } = router.query;
+  const headers = {
+    domain: shopName,
+  };
+  const getShopInfo = async () => {
+		try {
+			const shopInfo = await axios.post(
+				`${process.env.API_URL}v1/shops/info`,
+				{},
+				{ headers: headers }
+			);
+			const shopData = shopInfo?.data?.data;
+      setShopData(shopData)
+		} catch (err) {
+      console.log("err", err)
+			// router.push("/404");
+		}
+	};
+
+
+
+	useEffect(() => {
+		if (shopName !== undefined) {
+			getShopInfo();
+		}
+
+	}, [shopName]);
+
+
 	useEffect(()=>{
 		const shop = {
 			theme: localStorage.getItem("theme_id"),
@@ -25,25 +58,23 @@ const checkout = () => {
 		  };
 		  setShopInfo(shop)
 	},[])
-  const shop_meta_title = Cookies.get('shop_title')
-  const shop_meta_description = Cookies.get('shop_meta_description')
-  const shop_logo = Cookies.get('shop_logo')
+ 
   return (
     <>
      <Head>
-        <title>{shop_meta_title}</title>
-        <meta name="description" content={shop_meta_description} />
+        <title>{shopData?.shop_meta_title}</title>
+        <meta name="description" content={shopData?.shop_meta_description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href={shop_logo} />
+        <link rel="icon" href={shopData?.shop_favicon?.name} />
       </Head>
 
-      {shopInfo?.theme == 201  && <CheckOut/>}
+      {shopInfo?.theme == 201  && <CheckOut shopData={shopData}/>}
 
       {shopInfo?.theme == 202  && (
         <div className='ThemeTwo'>
-          <Menubar2 />
-          <ShippingAddress2 />
-          <Footer2 />
+          <Menubar2 shopData={shopData}/>
+          <ShippingAddress2 shopData={shopData}/>
+          <Footer2 shopData={shopData}/>
         </div>
       )}
     </>

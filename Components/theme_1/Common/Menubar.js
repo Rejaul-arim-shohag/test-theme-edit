@@ -31,6 +31,12 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const contextValue = useContext(Context);
+  const [subdomain, setSubdomain] = useState("")
+  useEffect(() => {
+    const subdomain = /:\/\/([^\/]+)/.exec(window.location.href)[1].split('.');
+    setSubdomain(subdomain)
+  }, [])
+
   let editActive = false;
   if (contextValue !== undefined) {
     editActive = contextValue.value;
@@ -62,13 +68,14 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
 
   useEffect(() => {
     const headers = {
-     "shop-id": localStorage.getItem("shop_id"),
+      "shop-id": localStorage.getItem("shop_id"),
     };
     handleFetchCategories(headers)
     setShopName(localStorage.getItem('shop_name'));
     // .then((r) => console.log("r", r));
   }, []);
 
+  console.log("subdomain", subdomain)
   return (
     <section className='Menubar'>
       <Container>
@@ -98,7 +105,10 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
                 <ul>
                   <li>
                     {editActive === false && (
-                      <Link href={`/${shopName}`} className='active'>
+                      <Link
+                        //  href={`/${subdomain.length <= 1 ? shopName : ''}`}
+                        href={`/${shopName}`}
+                        className='active'>
                         Home
                       </Link>
                     )}
@@ -109,10 +119,10 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
                           onChange={(e) =>
                             setProp(
                               (props) =>
-                                (props.menu1 = e.target.value.replace(
-                                  /<\/?[^>]+(>|$)/g,
-                                  ""
-                                ))
+                              (props.menu1 = e.target.value.replace(
+                                /<\/?[^>]+(>|$)/g,
+                                ""
+                              ))
                             )
                           }
                           tagName='a'
@@ -128,7 +138,10 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
 
                   <li>
                     {editActive === false && (
-                      <Link href={`/${shopName}/shop`}> Shop </Link>
+                      <Link
+                        //  href={`/${subdomain.length <= 1 ? shopName : ''}/shop`}
+                        href={`/${shopName}/shop`}
+                      > Shop </Link>
                     )}
 
                     {editActive === true && (
@@ -138,10 +151,10 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
                           onChange={(e) =>
                             setProp(
                               (props) =>
-                                (props.menu2 = e.target.value.replace(
-                                  /<\/?[^>]+(>|$)/g,
-                                  ""
-                                ))
+                              (props.menu2 = e.target.value.replace(
+                                /<\/?[^>]+(>|$)/g,
+                                ""
+                              ))
                             )
                           }
                           tagName='a'
@@ -152,7 +165,10 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
                   </li>
 
                   <li>
-                    {editActive === false && <Link href=''> About Us </Link>}
+                    {editActive === false && <Link
+                      // href={`/${subdomain.length <= 1 ? shopName : ''}/about-us`}
+                      href={`/${shopName}/about-us`}
+                    > About Us </Link>}
 
                     {editActive === true && (
                       <ContentEditable
@@ -160,10 +176,10 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.menu3 = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.menu3 = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='a'
@@ -172,7 +188,7 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
                     )}
                   </li>
 
-                  <li>
+                  {/* <li>
                     {editActive === false && <Link href=''> Contact Us </Link>}
 
                     {editActive === true && (
@@ -181,17 +197,17 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
                         onChange={(e) =>
                           setProp(
                             (props) =>
-                              (props.menu4 = e.target.value.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                              ))
+                            (props.menu4 = e.target.value.replace(
+                              /<\/?[^>]+(>|$)/g,
+                              ""
+                            ))
                           )
                         }
                         tagName='a'
                         style={{ fontSize: `${fontSize}px` }}
                       />
                     )}
-                  </li>
+                  </li> */}
                 </ul>
                 {editActive === true && (
                   <Form.Range
@@ -265,22 +281,26 @@ const Menubar = ({ menu1, menu2, menu3, menu4, fontSize, save }) => {
                     <div className='MenubarMiddle'>
                       <ul>
                         <li>
-                          <Link href='' className='active'>
-                            Home
-                          </Link>
+                          <Link
+                            href={`/${shopName}`}
+                          > Home </Link>
                         </li>
 
                         <li>
-                          <Link href=''> Shop </Link>
+                        <Link
+                            href={`/${shopName}/shop`}
+                          > Shop </Link>
                         </li>
 
                         <li>
-                          <Link href=''> About Us </Link>
+                        <Link
+                            href={`/${shopName}/about-us`}
+                          > About us </Link>
                         </li>
 
-                        <li>
+                        {/* <li>
                           <Link href=''> Contact Us </Link>
-                        </li>
+                        </li> */}
                       </ul>
 
                       <div className='SocailIcon'>

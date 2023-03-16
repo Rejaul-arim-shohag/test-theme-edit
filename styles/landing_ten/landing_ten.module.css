@@ -308,11 +308,16 @@ font-weight: 500;
     margin-left: 5%;
     margin-right: 5%;
     box-shadow:rgba(100, 100, 111, 0.2) 0px 10px 39px 0px; 
-    float: left;
-    float: right;
     border-radius: 20px;
     margin-bottom: 100px;
+
   }
+ 
+  .FloatSolve{
+    width: 100%;
+    float: left;
+  }
+
 
   /* .banAbsolute{
    
@@ -334,6 +339,11 @@ font-weight: 500;
   .cardDiv img{
        margin-top: -50px;
 
+  }
+
+  .FloatSolve{
+    width: 100%;
+    float: left ;
   }
   
   /* ---------------------------------------------------------------------------------------------------------------------------------------------------

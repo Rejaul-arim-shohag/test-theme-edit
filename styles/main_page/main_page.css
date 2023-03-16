@@ -119,6 +119,20 @@
     padding: 0;
 }
 
+.accordion-button:not(.collapsed)::after{
+    display: none !important;
+}
+
+@media (max-width: 1700px) {
+
+    .Banner h2 {
+        font-size: 32px;
+        line-height: 42px;
+    }
+    
+
+}
+
 
 @media (max-width: 1439px) {
 

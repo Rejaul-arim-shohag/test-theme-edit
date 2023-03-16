@@ -10,7 +10,6 @@ import { useRouter } from "next/router";
 import ShippingAddress from "../../../Components/theme_1/ShippingAddress/ShippingAddress";
 import { baseUrl, shopId } from "../../../constant/constant";
 import { TbCurrencyTaka } from "react-icons/tb";
-
 import {
 	addToCart,
 	clearCart,
@@ -30,7 +29,7 @@ import Footer from "../Common/Footer";
 import SocialMedia from "../Common/SocialMedia";
 import TinyFooter from "../Common/TinyFooter";
 
-const CheckOut = () => {
+const CheckOut = ({ shopData }) => {
 	const carts = useSelector((state) => state.cart);
 	const [cart, setCart] = useState([]);
 	const [cartSubTotal, setCartSubTotal] = useState("");
@@ -44,10 +43,42 @@ const CheckOut = () => {
 		setCart(carts?.cartItems);
 		setCartSubTotal(carts.cartTotalAmount);
 		setShopName(localStorage.getItem("shop_name"));
+
+
 	}, [carts]);
+
+
+	//shipping cost add
+	const checkDeliveryCharge = cart.length > 0 && cart.find(item => item.delivery_charge === "paid")
+	const [isCheckedInSideDhaka, setIsCheckedInSideDhaka] = useState(true);
+	const [isCheckedInOutSideDhaka, setIsCheckedInOutSideDhaka] = useState(false);
+	const [shippingCost, setShippingCost] = useState()
+
+	const handleChange = e => {
+		if (e.target.id === "insideDhaka") {
+			setIsCheckedInSideDhaka(!isCheckedInSideDhaka);
+			setIsCheckedInOutSideDhaka(false)
+			setShippingCost(e.target.value)
+		}
+		else if (e.target.id === "outSideDhaka") {
+			setIsCheckedInOutSideDhaka(!isCheckedInOutSideDhaka)
+			setIsCheckedInSideDhaka(false)
+			setShippingCost(e.target.value)
+		}
+	}
+
 
 	useEffect(() => {
 		dispatch(getTotals());
+
+		//shipping cost add
+		if (checkDeliveryCharge !== undefined) {
+			setShippingCost(checkDeliveryCharge?.inside_dhaka)
+		}
+		else if (checkDeliveryCharge === undefined) {
+			setShippingCost(0)
+		}
+		// setShippingCost()
 	}, [cart, dispatch]);
 
 	const handleAddToCart = (product) => {
@@ -66,6 +97,8 @@ const CheckOut = () => {
 		dispatch(clearCart());
 	};
 
+
+
 	//order place
 	const cartQuantitys = [];
 	const productsId = [];
@@ -77,6 +110,8 @@ const CheckOut = () => {
 	const headers = {
 		"shop-id": shopID,
 	};
+
+
 	const {
 		register,
 		handleSubmit,
@@ -97,7 +132,8 @@ const CheckOut = () => {
 			})
 			.then((res) => {
 				if (res.status === 200) {
-					console.log( "res", res)
+
+					console.log("res theme one check out", res)
 					router.push(`/${shop_name}/order_successfull/${res?.data?.data?.id}`);
 					// router.push(`/${shop_name}`)
 					handleClearCart();
@@ -110,8 +146,12 @@ const CheckOut = () => {
 			});
 	};
 
+	const hanldeChange = (e) => {
+		console.log('e', e)
+	}
+
 	return (<>
-		<Header />
+		<Header shopData={shopData} />
 		<section className='CheckOut'>
 			<Container>
 				<div className='CheckOutContent'>
@@ -280,7 +320,7 @@ const CheckOut = () => {
 												</div>
 												<div className='ProceedToCheckout'>
 													<Button type='submit' variant='contained'>
-														PLACE ORDER TK {cartSubTotal}
+														PLACE ORDER TK  {cart.length < 1 ? 0 : parseInt(cartSubTotal) + parseInt(shippingCost)}
 													</Button>
 												</div>
 											</div>
@@ -311,13 +351,20 @@ const CheckOut = () => {
 									</li>
 
 									<li className='d_flex'>
-										<h5>Delivery fee</h5>
-										<p>0</p>
+										<h5>Shipping</h5>
+										{
+											checkDeliveryCharge !== undefined && cart.length !== 0 ? <div>
+												<div> <input type='checkbox' value={checkDeliveryCharge.inside_dhaka} onChange={handleChange} id="insideDhaka" checked={isCheckedInSideDhaka} /> Inside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{checkDeliveryCharge.inside_dhaka}</span></div>
+												<div> <input type='checkbox' value={checkDeliveryCharge.outside_dhaka} onChange={handleChange} id="outSideDhaka" checked={isCheckedInOutSideDhaka} /> Outside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{checkDeliveryCharge.outside_dhaka}</span></div>
+											</div> : <p> {cart.length === 0 ? "0" : "Delivary Charge Free"}</p>
+										}
+
+
 									</li>
 
 									<li className='d_flex'>
 										<h3>Grand total</h3>
-										<h4>TK {cartSubTotal}</h4>
+										<h4>TK {cart.length < 1 ? 0 : parseInt(cartSubTotal) + parseInt(shippingCost)}</h4>
 									</li>
 								</ul>
 							</div>
@@ -326,10 +373,10 @@ const CheckOut = () => {
 				</div>
 			</Container>
 		</section>
-		<Delivary />
-		<Footer />
-		<SocialMedia />
-		<TinyFooter />
+		{/* <Delivary /> */}
+		<Footer shopData={shopData} />
+		<SocialMedia shopData={shopData} />
+		<TinyFooter shopData={shopData} />
 	</>
 
 	);

@@ -21,20 +21,37 @@ const LandingFour = () => {
   const [shopID, setShopID] = useState();
   const [quantity, setQuantity] = useState(1);
 
-  async function fetchProducts(headers) {
-    const response = await fetch(`${process.env.API_URL}v1/customer/products`, {
-      headers: headers,
-    });
-    const data = await response.json();
-
-    setProduct(data.data[data.data?.length - 1]);
+  //shipping cost add
+  const [isCheckedInSideDhaka, setIsCheckedInSideDhaka] = useState(true);
+  const [isCheckedInOutSideDhaka, setIsCheckedInOutSideDhaka] = useState(false);
+  const [shippingCost, setShippingCost] = useState()
+  const handleChange = e => {
+    if (e.target.id === "insideDhaka") {
+      setIsCheckedInSideDhaka(!isCheckedInSideDhaka);
+      setIsCheckedInOutSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
+    else if (e.target.id === "outSideDhaka") {
+      setIsCheckedInOutSideDhaka(!isCheckedInOutSideDhaka)
+      setIsCheckedInSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
   }
+
+  // async function fetchProducts(headers) {
+  //   const response = await fetch(`${process.env.API_URL}v1/customer/products`, {
+  //     headers: headers,
+  //   });
+  //   const data = await response.json();
+
+  //   setProduct(data.data[data.data?.length - 1]);
+  // }
 
   useEffect(() => {
     const headers = {
-     "shop-id": localStorage.getItem("shop_id"),
+      "shop-id": localStorage.getItem("shop_id"),
     };
-    fetchProducts(headers).then((r) => console.log());
+    // fetchProducts(headers).then((r) => console.log());
     setShopID(localStorage.getItem("shop_id"));
   }, [shopID]);
 
@@ -51,6 +68,27 @@ const LandingFour = () => {
   } = useForm();
   const router = useRouter();
   const shop_name = router.query.shopName;
+
+  // const router = useRouter();
+  // const shop_name = router.query.shopName;
+
+  const { page } = router.query;
+  const getPageInfo = async (page) => {
+    const pageInformation = await axios.get(
+      `${process.env.API_URL}v1/page/${page}`
+    );
+    // setPageInfo(pageInformation.data.data);
+    setProduct(pageInformation.data.data.product)
+    setShippingCost(pageInformation?.data?.data?.product?.inside_dhaka)
+  };
+  useEffect(() => {
+    if (page !== undefined) {
+      getPageInfo(page);
+    }
+
+  }, [shop_name])
+
+
   const onSubmit = (data) => {
     console.log("postBody", data)
     const postBody = {
@@ -59,6 +97,8 @@ const LandingFour = () => {
       customer_address: data.customerAddress,
       product_id: [product.id],
       product_qty: [quantity],
+      shipping_cost: shippingCost,
+
     };
 
 
@@ -110,7 +150,7 @@ const LandingFour = () => {
                   <h1>শত  ভেজাল  ভিড়ে একমাত্র আমরাই আপনাকে দিচ্ছি খাঁটি ফরমালীন মুক্ত আম</h1>
                   <h3>বাজারে আমের দাম উঠা-নামা করতে পারে, <br /> তাই ফোন করে আমের দাম কনফার্ম হোন</h3>
 
-                  <Link href='' className={styles.bg}> <AiOutlineShoppingCart/> অর্ডার করুন</Link>
+                  <Link href='#OrderConfirmFrom' className={styles.bg}> <AiOutlineShoppingCart /> অর্ডার করুন</Link>
 
                 </div>
 
@@ -344,7 +384,7 @@ const LandingFour = () => {
 
                 <h3>সারাদেশে ফ্রি ডেলিভারি পেতে এখনি</h3>
 
-                <Link href='' className={styles.bg}> <AiOutlineShoppingCart/> অর্ডার করুন</Link>
+                <Link href='#OrderConfirmFrom' className={styles.bg}> <AiOutlineShoppingCart /> অর্ডার করুন</Link>
 
               </div>
 
@@ -457,7 +497,7 @@ const LandingFour = () => {
 
               <div className={styles.OrderNowtext}>
 
-                <Link href='' className={styles.bg}> <AiOutlineShoppingCart/> অর্ডার করুন</Link>
+                <Link href='#OrderConfirmFrom' className={styles.bg}> <AiOutlineShoppingCart /> অর্ডার করুন</Link>
 
                 <Link href='tel:8801799733234'> +8801799733234 </Link>
 
@@ -479,135 +519,143 @@ const LandingFour = () => {
       {/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         FormPart
       ------------------------------------------------------------------------------------------------------------------------------------------------------------------*/}
-      <section className="OrderConfirmFrom">
+      <section className="OrderConfirmFrom" id='OrderConfirmFrom'>
 
         <Container>
-        <form  onSubmit={handleSubmit(onSubmit)}>
-          <Row>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Row>
 
-            {/* left */}
-            <Col lg={7}>
+              {/* left */}
+              <Col lg={7}>
 
-              <div className="OrderConfirmLeft">
+                <div className="OrderConfirmLeft">
 
-                <h3>Billing details</h3>
+                  <h3>Billing details</h3>
 
-                <div className="CustomeInput">
-                  <input type="text"
-                    {...register("customerName", { required: true })}
-                  placeholder='আপনার নাম লিখুন *' />
+                  <div className="CustomeInput">
+                    <input type="text"
+                      {...register("customerName", { required: true })}
+                      placeholder='আপনার নাম লিখুন *' />
                     {errors.customerName && (
                       <span style={{ color: "red" }}>Name is required</span>
                     )}
-                </div>
+                  </div>
 
-                <div className="CustomeInput">
-                  <input type="text"
-                   {...register(
-                    "customerMobile",
-                    { required: true },
-                    { min: 11, max: 15 }
-                  )}
-                   placeholder='আপনার মোবাইল নাম্বার লিখুন *' />
-                   {errors.customerMobile && (
+                  <div className="CustomeInput">
+                    <input type="text"
+                      {...register(
+                        "customerMobile",
+                        { required: true },
+                        { min: 11, max: 15 }
+                      )}
+                      placeholder='আপনার মোবাইল নাম্বার লিখুন *' />
+                    {errors.customerMobile && (
                       <span style={{ color: "red" }}>
                         Valid Mobile Number require
                       </span>
                     )}
-                </div>
+                  </div>
 
-                <div className="CustomeInput">
-                  <input
-                   {...register("customerAddress", { required: true })}
-                   type="text"  placeholder='আপনার সম্পূর্ণ ঠিকানা লিখুন *' />
+                  <div className="CustomeInput">
+                    <input
+                      {...register("customerAddress", { required: true })}
+                      type="text" placeholder='আপনার সম্পূর্ণ ঠিকানা লিখুন *' />
                     {errors.customerAddress && (
                       <span style={{ color: "red" }}>Address is required</span>
                     )}
-                </div>
-
-                {/* Payment */}
-                <div className="Payment">
-
-                  <h3>Paymet</h3>
-
-                  <div className="CustomeInput d_flex">
-                    <input type="checkbox" name="" id='CashOn'/>
-                    <label htmlFor="CashOn">ক্যাশ অন ডেলিভারি</label>
                   </div>
 
-                  <div className="ArrowBg">
-                    <p>Pay with cash on delivery.</p>
+                  {/* Payment */}
+                  <div className="Payment">
+
+                    <h3>Paymet</h3>
+
+                    <div className="CustomeInput d_flex">
+                      <input type="checkbox" checked name="" id='CashOn' />
+                      <label htmlFor="CashOn">ক্যাশ অন ডেলিভারি</label>
+                    </div>
+
+                    <div className="ArrowBg">
+                      <p>Pay with cash on delivery.</p>
+                    </div>
+
                   </div>
 
                 </div>
 
-              </div>
+              </Col>
 
-            </Col>
+              {/* right */}
+              <Col lg={5}>
 
-            {/* right */}
-            <Col lg={5}>
+                <div className="OrderConfirmRight">
 
-              <div className="OrderConfirmRight">
+                  <h3>Your order</h3>
 
-                <h3>Your order</h3>
+                  <ul>
 
-                <ul>
+                    <li>
+                      <h4>Product</h4>
+                      <h5>Subtotal</h5>
+                    </li>
 
-                  <li>
-                    <h4>Product</h4>
-                    <h5>Subtotal</h5>
-                  </li>
+                    <li>
 
-                  <li>
+                      <div className="left d_flex">
 
-                    <div className="left d_flex">
+                        <div className="img">
+                          <img
+                            //  src="images/product.svg"
+                            src={product?.main_image?.name}
+                            alt="" />
+                        </div>
 
-                      <div className="img">
-                        <img
-                        //  src="images/product.svg"
-                        src={product?.main_image?.name}
-                          alt="" />
+                        <p>{product?.product_name}</p>
+
                       </div>
 
-                      <p>{product?.product_name}</p>
+                      <div className="right d_flex">
 
-                    </div>
+                        <input
+                          type='number'
+                          onChange={handleQuantityChange}
+                          defaultValue={1}
+                          min={1}
+                        />
 
-                    <div className="right d_flex">
+                        <h5>BDT {product?.price}</h5>
 
-                      <input
-                       type='number'
-                       onChange={handleQuantityChange}
-                       defaultValue={1}
-                       min={1}
-                       />
+                      </div>
 
-                      <h5>BDT {product?.price}</h5>
+                    </li>
 
-                    </div>
+                    <li>
+                      <h5>Subtotal</h5>
+                      <h5>{quantity * product?.price}</h5>
+                    </li>
+                    <li>
+                      <h5>Shipping</h5>
+                      <div>
+                        <div>
+                          <div> <input type='checkbox' value={product?.inside_dhaka} onChange={handleChange} id="insideDhaka" checked={isCheckedInSideDhaka} /> Inside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.inside_dhaka}</span></div>
+                          <div> <input type='checkbox' value={product?.outside_dhaka} onChange={handleChange} id="outSideDhaka" checked={isCheckedInOutSideDhaka} /> Outside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.outside_dhaka}</span></div>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <h4>Total</h4>
+                      <h4>{quantity * product?.price + parseInt(shippingCost)}</h4>
+                    </li>
 
-                  </li>
+                  </ul>
 
-                  <li>
-                    <h5>Subtotal</h5>
-                    <h5>{quantity * product?.price}</h5>
-                  </li>
+                  <button type='submit'> <RiShoppingCart2Line /> Place Order  {quantity * product?.price + parseInt(shippingCost)}</button>
 
-                  <li>
-                    <h4>Total</h4>
-                    <h4>{quantity * product?.price}</h4>
-                  </li>
+                </div>
 
-                </ul>
+              </Col>
 
-                <button type='submit'> <RiShoppingCart2Line/> Place Order  {quantity * product?.price}</button>
-
-              </div>
-
-            </Col>
-
-          </Row>
+            </Row>
           </form>
         </Container>
 
@@ -643,11 +691,11 @@ const LandingFour = () => {
 
                 <div className={styles.SocialLink}>
 
-                  <Link href=''> <FaFacebookF/> </Link>
-                  <Link href=''> <AiOutlineTwitter/> </Link>
-                  <Link href=''> <FaLinkedinIn/> </Link>
-                  <Link href=''> <FaInstagram/> </Link>
-                  <Link href=''> <AiFillYoutube/> </Link>
+                  <Link href=''> <FaFacebookF /> </Link>
+                  <Link href=''> <AiOutlineTwitter /> </Link>
+                  <Link href=''> <FaLinkedinIn /> </Link>
+                  <Link href=''> <FaInstagram /> </Link>
+                  <Link href=''> <AiFillYoutube /> </Link>
 
                 </div>
 

@@ -15,20 +15,37 @@ const LandingSix = () => {
   const [shopID, setShopID] = useState();
   const [quantity, setQuantity] = useState(1);
 
-  async function fetchProducts(headers) {
-    const response = await fetch(`${process.env.API_URL}v1/customer/products`, {
-      headers: headers,
-    });
-    const data = await response.json();
-
-    setProduct(data.data[data.data?.length - 1]);
+  //shipping cost add
+  const [isCheckedInSideDhaka, setIsCheckedInSideDhaka] = useState(true);
+  const [isCheckedInOutSideDhaka, setIsCheckedInOutSideDhaka] = useState(false);
+  const [shippingCost, setShippingCost] = useState()
+  const handleChange = e => {
+    if (e.target.id === "insideDhaka") {
+      setIsCheckedInSideDhaka(!isCheckedInSideDhaka);
+      setIsCheckedInOutSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
+    else if (e.target.id === "outSideDhaka") {
+      setIsCheckedInOutSideDhaka(!isCheckedInOutSideDhaka)
+      setIsCheckedInSideDhaka(false)
+      setShippingCost(e.target.value)
+    }
   }
+
+  // async function fetchProducts(headers) {
+  //   const response = await fetch(`${process.env.API_URL}v1/customer/products`, {
+  //     headers: headers,
+  //   });
+  //   const data = await response.json();
+
+  //   setProduct(data.data[data.data?.length - 1]);
+  // }
 
   useEffect(() => {
     const headers = {
       "shop-id": localStorage.getItem("shop_id"),
     };
-    fetchProducts(headers).then((r) => console.log());
+    // fetchProducts(headers).then((r) => console.log());
     setShopID(localStorage.getItem("shop_id"));
   }, [shopID]);
 
@@ -45,6 +62,22 @@ const LandingSix = () => {
   } = useForm();
   const router = useRouter();
   const shop_name = router.query.shopName;
+ 
+  const { page } = router.query;
+  const getPageInfo = async (page) => {
+    const pageInformation = await axios.get(
+      `${process.env.API_URL}v1/page/${page}`
+    );
+    // setPageInfo(pageInformation.data.data);
+    setProduct(pageInformation.data.data.product)
+    setShippingCost(pageInformation?.data?.data?.product?.inside_dhaka)
+  };
+  useEffect(()=>{
+    if (page !== undefined) {
+      getPageInfo(page);
+    }
+   
+  }, [shop_name])
   const onSubmit = (data) => {
     console.log("postBody", data);
     const postBody = {
@@ -53,6 +86,8 @@ const LandingSix = () => {
       customer_address: data.customerAddress,
       product_id: [product.id],
       product_qty: [quantity],
+      shipping_cost: shippingCost,
+
     };
 
     axios
@@ -112,7 +147,7 @@ const LandingSix = () => {
                   </div>
 
                   <div className={styles.btnBox}>
-                    <Link href='' className={styles.bg}>
+                    <Link href='#orderSection' className={styles.bg}>
                       {" "}
                       <AiOutlineShoppingCart /> অর্ডার করুন
                     </Link>
@@ -304,7 +339,7 @@ const LandingSix = () => {
           <Row className='justify-content-center'>
             <Col lg={12}>
               <div className={styles.buttonGroup}>
-                <Link href='' className={styles.bg}>
+                <Link  href='#OrderConfirmFrom' className={styles.bg}>
                   {" "}
                   অর্ডার করুন
                 </Link>
@@ -345,7 +380,7 @@ const LandingSix = () => {
       {/* Section Gaps */}
       <div className={styles.section_gaps}></div>
 
-      <section className='OrderConfirmFrom'>
+      <section className='OrderConfirmFrom'  id="orderSection">
         <Container>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Row>
@@ -392,7 +427,7 @@ const LandingSix = () => {
                     <h3>Paymet</h3>
 
                     <div className='CustomeInput d_flex'>
-                      <input type='checkbox' name='' id='CashOn' />
+                      <input type='checkbox' checked name='' id='CashOn' />
                       <label htmlFor='CashOn'>ক্যাশ অন ডেলিভারি</label>
                     </div>
 
@@ -437,16 +472,24 @@ const LandingSix = () => {
                       <h5>Subtotal</h5>
                       <h5>{quantity * product?.price}</h5>
                     </li>
-
+                    <li>
+                      <h5>Shipping</h5>
+                      <div>
+                        <div>
+                          <div> <input type='checkbox' value={product?.inside_dhaka} onChange={handleChange} id="insideDhaka" checked={isCheckedInSideDhaka} /> Inside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.inside_dhaka}</span></div>
+                          <div> <input type='checkbox' value={product?.outside_dhaka} onChange={handleChange} id="outSideDhaka" checked={isCheckedInOutSideDhaka} /> Outside Dhaka ৳ <span style={{ fontWeight: "bold" }}>{product?.outside_dhaka}</span></div>
+                        </div>
+                      </div>
+                    </li>
                     <li>
                       <h4>Total</h4>
-                      <h4>{quantity * product?.price}</h4>
+                      <h4>{quantity * product?.price + parseInt(shippingCost)}</h4>
                     </li>
                   </ul>
 
                   <button >
                     {" "}
-                    <RiShoppingCart2Line /> Place Order BDT {quantity * product?.price}
+                    <RiShoppingCart2Line /> Place Order BDT {quantity * product?.price + parseInt(shippingCost)}
                   </button>
                 </div>
               </Col>

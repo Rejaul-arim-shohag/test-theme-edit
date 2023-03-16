@@ -12,7 +12,7 @@ import {
   FaTwitter,
   FaYoutube,
 } from "react-icons/fa";
-import { GoLocation } from "react-icons/go";
+// import { GoLocation } from "react-icons/go";
 import { FiMail } from "react-icons/fi";
 import { RiShoppingCart2Line } from "react-icons/ri";
 import styles from "../../../styles/landing_eight/landing_eight.module.css";
@@ -23,69 +23,8 @@ import swal from "sweetalert";
 import { useRouter } from "next/router";
 
 const LandingEight = () => {
-  const [product, setProduct] = useState({});
-  const [shopID, setShopID] = useState();
-  const [quantity, setQuantity] = useState(1);
-
-  async function fetchProducts(headers) {
-    const response = await fetch(`${process.env.API_URL}v1/customer/products`, {
-      headers: headers,
-    });
-    const data = await response.json();
-
-    setProduct(data.data[data.data?.length - 1]);
-  }
-
-  useEffect(() => {
-    const headers = {
-      "shop-id": localStorage.getItem("shop_id"),
-    };
-    fetchProducts(headers).then((r) => console.log());
-    setShopID(localStorage.getItem("shop_id"));
-  }, [shopID]);
-
-  const handleQuantityChange = (e) => {
-    setQuantity(parseInt(e.target.value));
-  };
-
-  //order submit
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm();
-  const router = useRouter();
-  const shop_name = router.query.shopName;
-  const onSubmit = (data) => {
-    console.log("postBody", data);
-    const postBody = {
-      customer_name: data.customerName,
-      customer_phone: data.customerMobile,
-      customer_address: data.customerAddress,
-      product_id: [product.id],
-      product_qty: [quantity],
-    };
-
-    axios
-      .post(`${process.env.API_URL}v1/customer/order/store`, postBody, {
-        headers: { "shop-id": shopID },
-      })
-      .then((res) => {
-        if (res.status === 200) {
-          router.push(`/${shop_name}/order_successfull/${res?.data?.data?.id}`);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        swal({
-          title: "Sorry",
-          text: "Something went wrong",
-          icon: "warning",
-        });
-      });
-  };
   return (
+
     <>
       <div className={styles.LandingEight}>
         {/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -137,7 +76,7 @@ const LandingEight = () => {
                       </div>
 
                       <div className={styles.btnBox}>
-                        <Link href='' className={styles.bg}>
+                        <Link href='#OrderConfirmFrom' className={styles.bg}>
                           {" "}
                           <AiOutlineShoppingCart /> অর্ডার করুন
                         </Link>
@@ -437,7 +376,7 @@ const LandingEight = () => {
                     <h1>সারাদেশে ফ্রি ডেলিভারি পেতে এখনি</h1>
 
                     <div className={styles.buttonCenter}>
-                      <Link href='' className={styles.bg}>
+                      <Link href='#OrderConfirmFrom' className={styles.bg}>
                         {" "}
                         <AiOutlineShoppingCart /> অর্ডার করুন
                       </Link>
@@ -463,6 +402,7 @@ const LandingEight = () => {
         <div className={styles.section_gaps}></div>
 
         <section className={styles.WhyUs}>
+
           <div className={styles.left}>
             <img src='/images/landing_8/left_leaf1.svg' alt='' />
           </div>
@@ -481,7 +421,8 @@ const LandingEight = () => {
                     আমাদের থেকে চা কেন নিবেন? কারন আমরা আপনাদের জন্য এমন একটি চা
                     সরবরাহ করবো যা বাগানের বাছাইকৃত ফ্রেশ তাজা পাতা থেকে তৈরি।
                     আমরা আপনাকে কেমিক্যাল প্রসেস বিহীন সতেজ চা যা আমরা সরাসরি
-                    গ্রাহকদের হাতে পৌছে দিয়ে থাকি। আমরা হোম ডেলিভারি দিয়ে থাকি।{" "}
+                    গ্রাহকদের হাতে পৌছে দিয়ে থাকি। আমরা হোম ডেলিভারি দিয়ে থাকি।
+                    {" "}
                   </p>
                 </div>
               </Col>
@@ -513,115 +454,109 @@ const LandingEight = () => {
         {/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------
             OrderConformation Section
         ------------------------------------------------------------------------------------------------------------------------------------------------------------------*/}
-        <section className='OrderConfirmFrom'>
+        <section className="OrderConfirmFrom" id="OrderConfirmFrom">
+
           <Container>
-          <form onSubmit={handleSubmit(onSubmit)}>
 
             <Row>
+
               {/* left */}
               <Col lg={7}>
-                <div className='OrderConfirmLeft'>
+
+                <div className="OrderConfirmLeft">
+
                   <h3>Billing details</h3>
 
-                  <div className='CustomeInput'>
-                  <input type="text"
-                    {...register("customerName", { required: true })}
-                  placeholder='আপনার নাম লিখুন *' />
-                    {errors.customerName && (
-                      <span style={{ color: "red" }}>Name is required</span>
-                    )}
+                  <div className="CustomeInput">
+                    <input type="text" name="" placeholder='আপনার নাম লিখুন *' />
                   </div>
 
-                  <div className='CustomeInput'>
-                  <input type="text"
-                   {...register(
-                    "customerMobile",
-                    { required: true },
-                    { min: 11, max: 15 }
-                  )}
-                   placeholder='আপনার মোবাইল নাম্বার লিখুন *' />
-                   {errors.customerMobile && (
-                      <span style={{ color: "red" }}>
-                        Valid Mobile Number require
-                      </span>
-                    )}
+                  <div className="CustomeInput">
+                    <input type="text" name="" placeholder='আপনার মোবাইল নাম্বার লিখুন *' />
                   </div>
 
-                  <div className='CustomeInput'>
-                  <input
-                   {...register("customerAddress", { required: true })}
-                   type="text"  placeholder='আপনার সম্পূর্ণ ঠিকানা লিখুন *' />
-                    {errors.customerAddress && (
-                      <span style={{ color: "red" }}>Address is required</span>
-                    )}
+                  <div className="CustomeInput">
+                    <input type="text" name="" placeholder='আপনার সম্পূর্ণ ঠিকানা লিখুন *' />
                   </div>
 
                   {/* Payment */}
-                  <div className='Payment'>
+                  <div className="Payment">
+
                     <h3>Paymet</h3>
 
-                    <div className='CustomeInput d_flex'>
-                      <input type='checkbox' name='' id='CashOn' />
-                      <label htmlFor='CashOn'>ক্যাশ অন ডেলিভারি</label>
+                    <div className="CustomeInput d_flex">
+                      <input type="checkbox" name="" id='CashOn'/>
+                      <label htmlFor="CashOn">ক্যাশ অন ডেলিভারি</label>
                     </div>
 
-                    <div className='ArrowBg'>
+                    <div className="ArrowBg">
                       <p>Pay with cash on delivery.</p>
                     </div>
+
                   </div>
+
                 </div>
+
               </Col>
 
               {/* right */}
               <Col lg={5}>
-                <div className='OrderConfirmRight'>
+
+                <div className="OrderConfirmRight">
+
                   <h3>Your order</h3>
 
                   <ul>
+
                     <li>
                       <h4>Product</h4>
                       <h5>Subtotal</h5>
                     </li>
 
                     <li>
-                      <div className='left d_flex'>
-                        <div className='img'>
-                        <img  src={product?.main_image?.name} alt='' />
+
+                      <div className="left d_flex">
+                        
+                        <div className="img">
+                          <img src="images/product.svg" alt="" />
                         </div>
 
-                        <p>{product?.product_name}</p>
+                        <p>Flower Of Story Men’s Perfume Set Boss</p>
+
                       </div>
 
-                      <div className='right d_flex'>
-                      <input type='number'
-                       onChange={handleQuantityChange}
-                       defaultValue={1}
-                       min={1} />
+                      <div className="right d_flex">
 
-                        <h5>BDT {product?.price}</h5>
+                        <input type="number" />
+
+                        <h5>BDT 1,690.00</h5>
+
                       </div>
+
                     </li>
 
                     <li>
                       <h5>Subtotal</h5>
-                      <h5>{quantity * product?.price}</h5>
+                      <h5>1,690.00</h5>
                     </li>
 
                     <li>
                       <h4>Total</h4>
-                      <h4>{quantity * product?.price}</h4>
+                      <h4>1,690.00</h4>
                     </li>
+                    
                   </ul>
 
-                  <button>
-                    {" "}
-                    <RiShoppingCart2Line /> Place Order BDT {quantity * product?.price}
-                  </button>
+                    <button> <RiShoppingCart2Line/> Place Order BDT 49.00</button>
+
                 </div>
+
               </Col>
+
             </Row>
-            </form>
+
           </Container>
+
         </section>
 
         {/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -669,7 +604,7 @@ const LandingEight = () => {
                   <ul className=''>
                     <li>
                       <div className={styles.footerBox}>
-                        <GoLocation />
+                        {/* <GoLocation /> */}
 
                         <Link href='#'>
                           Level: 5, Road: 07, Block: C, Niketan, Gulshan– 1,
