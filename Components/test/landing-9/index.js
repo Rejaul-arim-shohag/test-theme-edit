@@ -203,13 +203,13 @@ const index = () => {
 
                 <Col xs={6}>
 
-                  <img src="/images/Landing-9/img4.png" alt="img" />
+                  <img src="/images/landing-9/img4.png" alt="img" />
 
                 </Col>
 
                 <Col xs={6}>
 
-                  <img src="/images/Landing-9/img5.png" alt="img" />
+                  <img src="/images/landing-9/img5.png" alt="img" />
 
                 </Col>
 
@@ -665,7 +665,7 @@ const index = () => {
 
               <Col sm={12} md={12} lg={6}>
 
-                <img className="GiftImg" src="/images/Landing-9/img13.png" alt="img" />
+                <img className="GiftImg" src="/images/landing-9/img13.png" alt="img" />
 
               </Col>
 
@@ -676,27 +676,27 @@ const index = () => {
                   <ul>
 
                     <li>
-                      <img src="/images/Landing-9/check.svg" alt="alt" />
+                      <img src="/images/landing-9/check.svg" alt="alt" />
                       <p>কালো এবং সাদা কালার ফ্লোরাল গোটা প্যাটি ভেলভেট শাড়ি</p>
                     </li>
 
                     <li>
-                      <img src="/images/Landing-9/check.svg" alt="alt" />
+                      <img src="/images/landing-9/check.svg" alt="alt" />
                       <p>আমাদের  শাড়ির প্রধান উপাদান ধুপিয়ান</p>
                     </li>
 
                     <li>
-                      <img src="/images/Landing-9/check.svg" alt="alt" />
+                      <img src="/images/landing-9/check.svg" alt="alt" />
                       <p>অতিরিক্ত ব্লাউজ পিস থাকবে</p>
                     </li>
 
                     <li>
-                      <img src="/images/Landing-9/check.svg" alt="alt" />
+                      <img src="/images/landing-9/check.svg" alt="alt" />
                       <p>12 হাট বোহর</p>
                     </li>
 
                     <li>
-                      <img src="/images/Landing-9/check.svg" alt="alt" />
+                      <img src="/images/landing-9/check.svg" alt="alt" />
                       <p>ক্যাজুয়াল , পার্টি , এন্ড ফেস্টিভ্যাল  ওকেশন  পড়ার মত শাড়ি</p>
                     </li>
 
