@@ -7,7 +7,7 @@ import Cookies from "js-cookie";
 //landing pages
 
 import Landing_9 from "../../../Components/test/landing-9"
-import Landing_12 from "../../../Components/test/Landing-12"
+import Landing_12 from "../../../Components/test/landing-12"
 
 
 
