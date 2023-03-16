@@ -111,9 +111,9 @@ const Page = () => {
       </Head>
       {/* <ToastContainer/> */}
 
-      {/* {pageInfo.theme !== null && pageInfo?.theme?.name == 9 &&  <Landing_9 />}
-      {pageInfo.theme !== null && pageInfo?.theme?.name == 12 &&  <Landing_12 />} */}
-       <Landing_9 />
+      {pageInfo.theme !== null && pageInfo?.theme?.name == 9 &&  <Landing_9 />}
+      {pageInfo.theme !== null && pageInfo?.theme?.name == 12 &&  <Landing_12 />}
+       {/* <Landing_9 /> */}
      
     </>
   );
