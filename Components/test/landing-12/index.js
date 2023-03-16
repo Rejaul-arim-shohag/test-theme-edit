@@ -19,6 +19,7 @@ import "swiper/css/navigation";
 
 // import required modules
 import { FreeMode, Autoplay, Pagination, Navigation } from "swiper";
+
 import { FiPhoneCall } from "react-icons/fi";
 import { IoIosMail } from "react-icons/io";
 import { RiShoppingCart2Line } from "react-icons/ri";
