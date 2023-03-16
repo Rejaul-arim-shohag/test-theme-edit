@@ -203,7 +203,7 @@ const index = () => {
 
                 <Col xs={6}>
 
-                  <img src="/public/images/Landing-9/img4.png" alt="img" />
+                  <img src="/images/Landing-9/img4.png" alt="img" />
 
                 </Col>
 
